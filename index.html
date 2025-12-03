@@ -643,8 +643,8 @@
       /* 方塊：半透明玻璃 + 小貓抓 */
       .tile {
         position: absolute;
-        left: 8px;
-        right: 8px;
+        left: 4px;
+        right: 4px;
         height: 120px;
         cursor: pointer;
         border-radius: 22px;
@@ -1372,7 +1372,7 @@
           grid-template-columns: minmax(0, 1fr);
         }
         body.hints-hidden {
-          --play-height: calc(82dvh - 40px);
+          --play-height: calc(94dvh - 24px);
         }
         .cat-column {
           position: absolute;
@@ -1392,13 +1392,15 @@
 
       @media (max-width: 768px) {
         :root {
-          --play-height: calc(88dvh - 40px);
+          --play-height: calc(92dvh - 30px);
         }
         .tile {
           height: 100px;
+          left: 0;
+          right: 0;
         }
         .hitline {
-          bottom: 60px;
+          bottom: 50px;
         }
         .grid {
           grid-template-columns: repeat(2, 1fr);
@@ -1420,7 +1422,7 @@
 
       @media (orientation: landscape) and (max-width: 1024px) {
         :root {
-          --play-height: clamp(420px, 90dvh, 620px);
+          --play-height: clamp(460px, 94dvh, 660px);
         }
         .shell {
           padding: 14px 16px 12px;
@@ -1464,9 +1466,11 @@
         }
         .tile {
           height: 96px;
+          left: 0;
+          right: 0;
         }
         .hitline {
-          bottom: 48px;
+          bottom: 40px;
         }
       }
     </style>
@@ -1556,6 +1560,13 @@
         </div>
 
         <div class="row">
+          <span class="field">
+            琴鍵模式
+            <select id="layoutSel">
+              <option value="desktop">桌機 12 鍵</option>
+              <option value="mobile">手機 8 鍵</option>
+            </select>
+          </span>
           <span class="field">
             模式
             <select id="modeSel">
@@ -1871,7 +1882,8 @@
         settingsPanelEl = $("#settingsPanel"),
         btnMissionsEl = $("#btnMissions"),
         hintColumnEl = $("#hintColumn"),
-        hintToggleBtn = $("#btnToggleHints");
+        hintToggleBtn = $("#btnToggleHints"),
+        layoutSel = $("#layoutSel");
 
       const HINT_VIS_KEY = "mew_hint_visibility_v1";
       const QUEST_KEY = "mew_quests_v1";
@@ -2340,24 +2352,90 @@
       /* 主鍵盤 & 音色 */
       const WHITE_LANES = [0, 2, 4, 5, 7, 9, 11];
       const BLACK_LANES = [1, 3, 6, 8, 10];
-      const KEY_MAP = {
-        a: 0,
-        w: 1,
-        s: 2,
-        e: 3,
-        d: 4,
-        f: 5,
-        t: 6,
-        j: 7,
-        y: 8,
-        k: 9,
-        u: 10,
-        l: 11,
+
+      const MOBILE_TARGET_OFFSETS = [0, 2, 4, 5, 7, 9, 11, 12];
+      const LAYOUTS = {
+        desktop: {
+          id: "desktop",
+          lanes: 12,
+          whiteLanes: WHITE_LANES,
+          blackLanes: BLACK_LANES,
+          keyMap: {
+            a: 0,
+            w: 1,
+            s: 2,
+            e: 3,
+            d: 4,
+            f: 5,
+            t: 6,
+            j: 7,
+            y: 8,
+            k: 9,
+            u: 10,
+            l: 11,
+          },
+          midiOffset: (lane) => lane,
+          mapLane: (lane) => lane,
+          freeLabels: {
+            white: ["C(A)", "D(S)", "E(D)", "F(F)", "G(J)", "A(K)", "B(L)"],
+            black: {
+              1: "C#(W)",
+              3: "D#(E)",
+              6: "F#(T)",
+              8: "G#(Y)",
+              10: "A#(U)",
+            },
+          },
+        },
+        mobile: {
+          id: "mobile",
+          lanes: 8,
+          whiteLanes: [0, 1, 2, 3, 4, 5, 6, 7],
+          blackLanes: [],
+          keyMap: {
+            a: 0,
+            s: 1,
+            d: 2,
+            f: 3,
+            j: 4,
+            k: 5,
+            l: 6,
+            ";": 7,
+          },
+          midiOffset: (lane) => MOBILE_TARGET_OFFSETS[lane] ?? lane,
+          mapLane: (lane) => {
+            if (lane < 0) return lane;
+            let bestIdx = 0;
+            let bestDiff = Infinity;
+            MOBILE_TARGET_OFFSETS.forEach((off, idx) => {
+              const diff = Math.abs(off - lane);
+              if (diff < bestDiff) {
+                bestDiff = diff;
+                bestIdx = idx;
+              }
+            });
+            return bestIdx;
+          },
+          freeLabels: {
+            white: ["C(A)", "D(S)", "E(D)", "F(F)", "G(J)", "A(K)", "B(L)", "C5(;)"],
+            black: {},
+          },
+        },
       };
 
       let audioCtx = null,
         masterGain = null,
         currentTone = "soft";
+      let currentLayoutId = "desktop";
+      let currentLayout = LAYOUTS.desktop;
+      let keyMap = { ...LAYOUTS.desktop.keyMap };
+      function mapSeqForLayout(seq) {
+        if (!seq) return [];
+        if (currentLayoutId === "desktop") return [...seq];
+        return seq.map((lane) =>
+          lane < 0 ? -1 : currentLayout.mapLane ? currentLayout.mapLane(lane) : lane
+        );
+      }
 
       function ensureAudio() {
         if (!audioCtx) {
@@ -2394,7 +2472,11 @@
       }
       function laneToMidi(lane) {
         const base = game && game.song ? game.song.baseNote ?? 60 : 60;
-        return base + lane;
+        const off =
+          currentLayout.midiOffset && typeof currentLayout.midiOffset === "function"
+            ? currentLayout.midiOffset(lane)
+            : lane;
+        return base + off;
       }
 
       function playSynthByLane(lane, dur = 0.2) {
@@ -2473,18 +2555,26 @@
 
       /* Lane 幾何 */
       function makeLaneGeometry() {
-        const whiteW = 100 / 7;
-        const blackW = whiteW * 0.6;
-        const geo = {};
-        for (let i = 0; i < 7; i++) {
-          const lane = WHITE_LANES[i];
-          geo[lane] = { left: i * whiteW, width: whiteW, z: 1 };
+        if (currentLayoutId === "desktop") {
+          const whiteW = 100 / 7;
+          const blackW = whiteW * 0.6;
+          const geo = {};
+          for (let i = 0; i < 7; i++) {
+            const lane = WHITE_LANES[i];
+            geo[lane] = { left: i * whiteW, width: whiteW, z: 1 };
+          }
+          const blackMap = { 1: 0, 3: 1, 6: 3, 8: 4, 10: 5 };
+          for (const b of BLACK_LANES) {
+            const slot = blackMap[b];
+            const center = slot * whiteW + whiteW * 0.72;
+            geo[b] = { left: center - blackW / 2, width: blackW, z: 2 };
+          }
+          return geo;
         }
-        const blackMap = { 1: 0, 3: 1, 6: 3, 8: 4, 10: 5 };
-        for (const b of BLACK_LANES) {
-          const slot = blackMap[b];
-          const center = slot * whiteW + whiteW * 0.72;
-          geo[b] = { left: center - blackW / 2, width: blackW, z: 2 };
+        const geo = {};
+        const w = 100 / currentLayout.lanes;
+        for (let i = 0; i < currentLayout.lanes; i++) {
+          geo[i] = { left: i * w, width: w, z: 1 };
         }
         return geo;
       }
@@ -2492,7 +2582,7 @@
       function refreshLaneDom() {
         laneGeo = makeLaneGeometry();
         lanesEl.innerHTML = "";
-        for (let lane = 0; lane < 12; lane++) {
+        for (let lane = 0; lane < currentLayout.lanes; lane++) {
           const g = laneGeo[lane];
           const d = document.createElement("div");
           d.className = "lane";
@@ -2943,10 +3033,10 @@
       }
 
       const CONFIG = {
-        HIT_Y: 420,
+        HIT_Y: 520,
         TILE_H: 120,
         WIN: { perfect: 55, great: 95, good: 140 },
-        LEAD: 6,
+        LEAD: 8,
       };
       const SCOREMAP = { perfect: 300, great: 200, good: 100, miss: 0 };
 
@@ -2966,6 +3056,12 @@
       if (isMobileLike && Number(speed.value) > 0.9) {
         speed.value = "0.90";
       }
+      if (layoutSel) {
+        layoutSel.value = isMobileLike ? "mobile" : "desktop";
+        currentLayoutId = layoutSel.value;
+        currentLayout = LAYOUTS[currentLayoutId];
+        keyMap = { ...currentLayout.keyMap };
+      }
       speed.addEventListener("input", () => {
         speedVal.textContent = Number(speed.value).toFixed(2) + "x";
         if (game && game.song) {
@@ -2983,39 +3079,28 @@
       function buildFreePiano() {
         freeWhites.innerHTML = "";
         freeBlacks.innerHTML = "";
-        const labelsWhite = [
-          "C(A)",
-          "D(S)",
-          "E(D)",
-          "F(F)",
-          "G(J)",
-          "A(K)",
-          "B(L)",
-        ];
-        const labelsBlack = {
-          1: "C#(W)",
-          3: "D#(E)",
-          6: "F#(T)",
-          8: "G#(Y)",
-          10: "A#(U)",
-        };
-        for (let i = 0; i < 7; i++) {
-          const lane = WHITE_LANES[i];
+        const labelsWhite = currentLayout.freeLabels.white || [];
+        const labelsBlack = currentLayout.freeLabels.black || {};
+        const whiteLanes = currentLayout.whiteLanes || [];
+        const blackLanes = currentLayout.blackLanes || [];
+        const whiteCount = whiteLanes.length || 7;
+        for (let i = 0; i < whiteCount; i++) {
+          const lane = whiteLanes[i];
           const w = document.createElement("div");
           w.className = "wkey";
           w.dataset.lane = lane;
-          w.textContent = labelsWhite[i];
+          w.textContent = labelsWhite[i] || "";
           w.addEventListener("pointerdown", () => {
             ensureAudio();
             judge(lane);
           });
           freeWhites.appendChild(w);
         }
-        const whiteWPercent = 100 / 7;
-        const blackMap = { 1: 0, 3: 1, 6: 3, 8: 4, 10: 5 };
-        for (const b of BLACK_LANES) {
-          const slot = blackMap[b];
-          const center = slot * whiteWPercent + whiteWPercent * 0.72;
+        const whiteWPercent = 100 / Math.max(1, whiteCount);
+        blackLanes.forEach((b) => {
+          const slot = WHITE_LANES.indexOf(b);
+          const slotIdx = slot >= 0 ? slot : Math.min(whiteCount - 1, b);
+          const center = slotIdx * whiteWPercent + whiteWPercent * 0.72;
           const bw = whiteWPercent * 0.6;
           const left = center - bw / 2;
           const bk = document.createElement("div");
@@ -3023,13 +3108,29 @@
           bk.dataset.lane = b;
           bk.style.left = left + "%";
           bk.style.width = bw + "%";
-          bk.textContent = labelsBlack[b];
+          bk.textContent = labelsBlack[b] || "";
           bk.addEventListener("pointerdown", (e) => {
             e.stopPropagation();
             ensureAudio();
             judge(b);
           });
           freeBlacks.appendChild(bk);
+        });
+      }
+
+      function applyLayout(id) {
+        if (!LAYOUTS[id]) id = "desktop";
+        currentLayoutId = id;
+        currentLayout = LAYOUTS[id];
+        keyMap = { ...currentLayout.keyMap };
+        refreshLaneDom();
+        buildFreePiano();
+        if (game) {
+          const song = game.song || SONGS[0];
+          const mode = game.mode;
+          const wasRunning = game.running;
+          reset(mode === "free" ? null : song, mode);
+          if (wasRunning && mode === "songs") start();
         }
       }
 
@@ -3061,6 +3162,7 @@
           clearTimeout(bgmStopTimer);
           bgmStopTimer = null;
         }
+        const mappedSeq = song ? mapSeqForLayout(song.seq) : [];
         game = {
           mode,
           song,
@@ -3068,12 +3170,13 @@
           beatMs: song ? 60000 / song.bpm / Number(speed.value) : 500,
           t0: 0,
           running: false,
-          judged: song ? new Array(song.seq.length).fill(false) : [],
+          judged: song ? new Array(mappedSeq.length).fill(false) : [],
           score: 0,
           combo: 0,
           maxCombo: 0,
           counts: { perfect: 0, great: 0, good: 0, miss: 0 },
           drawn: new Set(),
+          seq: mappedSeq,
         };
         autoOffset = 0;
         autoSamples = [];
@@ -3127,7 +3230,7 @@
             }, dur + 200);
           }
           const lengthMs =
-            game.song.seq.length * game.beatMs + CONFIG.WIN.good + 1200;
+            game.seq.length * game.beatMs + CONFIG.WIN.good + 1200;
           endTimer = setTimeout(() => game.running && finish(), lengthMs);
           loop();
         }
@@ -3201,8 +3304,8 @@
         const baseIdx = currentBeatIndex(t);
         for (let k = CONFIG.LEAD; k >= 0; k--) {
           const idx = baseIdx + k;
-          if (idx >= game.song.seq.length || idx < 0) continue;
-          const laneIdx = game.song.seq[idx];
+          if (idx >= game.seq.length || idx < 0) continue;
+          const laneIdx = game.seq[idx];
           if (laneIdx < 0) continue;
           const phase = (t - idx * game.beatMs) / game.beatMs;
           const y = yForPhase(phase);
@@ -3312,11 +3415,11 @@
 
         const t = now() - game.t0 - autoOffset;
         const idx = currentBeatIndex(t + autoOffset);
-        if (idx < 0 || idx >= game.song.seq.length) return;
+        if (idx < 0 || idx >= game.seq.length) return;
         if (game.judged[idx]) return;
         if (!game.drawn.has(idx)) return;
 
-        const lane = game.song.seq[idx];
+        const lane = game.seq[idx];
         if (lane < 0) {
           addScore("miss");
           game.judged[idx] = true;
@@ -3619,6 +3722,9 @@
           mode
         );
       });
+      layoutSel?.addEventListener("change", () => {
+        applyLayout(layoutSel.value);
+      });
       $("#songSel").addEventListener("change", () => {
         if (game?.running) pause();
         reset(
@@ -3630,10 +3736,10 @@
 
       window.addEventListener("keydown", (e) => {
         const k = e.key.toLowerCase();
-        if (k in KEY_MAP) {
+        if (k in keyMap) {
           ensureAudio();
           e.preventDefault();
-          judge(KEY_MAP[k]);
+          judge(keyMap[k]);
         }
       });
 
@@ -3698,7 +3804,7 @@
       (function init() {
         initHintToggle();
         buildLanesOnce();
-        buildFreePiano();
+        applyLayout(currentLayoutId);
         reset(SONGS[0], "songs");
         $("#speed").dispatchEvent(new Event("input"));
         renderQuests();
