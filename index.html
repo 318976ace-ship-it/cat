@@ -645,7 +645,7 @@
         position: absolute;
         left: 8px;
         right: 8px;
-        height: 100px;
+        height: 120px;
         cursor: pointer;
         border-radius: 22px;
         background: linear-gradient(145deg, #fffdfc, #ffeede);
@@ -1395,7 +1395,7 @@
           --play-height: calc(80dvh - 50px);
         }
         .tile {
-          height: 86px;
+          height: 100px;
         }
         .hitline {
           bottom: 80px;
@@ -1463,7 +1463,7 @@
           min-width: 0;
         }
         .tile {
-          height: 82px;
+          height: 96px;
         }
         .hitline {
           bottom: 60px;
@@ -2944,9 +2944,9 @@
 
       const CONFIG = {
         HIT_Y: 560 - 110 - 100,
-        TILE_H: 100,
+        TILE_H: 120,
         WIN: { perfect: 55, great: 95, good: 140 },
-        LEAD: 4,
+        LEAD: 6,
       };
       const SCOREMAP = { perfect: 300, great: 200, good: 100, miss: 0 };
 
@@ -2962,6 +2962,10 @@
 
       const speed = $("#speed"),
         speedVal = $("#speedVal");
+      const isMobileLike = window.matchMedia("(max-width: 1024px)").matches;
+      if (isMobileLike && Number(speed.value) > 0.9) {
+        speed.value = "0.90";
+      }
       speed.addEventListener("input", () => {
         speedVal.textContent = Number(speed.value).toFixed(2) + "x";
         if (game && game.song) {
