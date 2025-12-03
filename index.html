@@ -905,6 +905,22 @@
         background-color: var(--blackKeyCute);
         font-size: 10px;
       }
+      .hint-toggle {
+        display: inline-flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+        padding: 10px 12px;
+      }
+      .hint-toggle .hint-toggle-text {
+        font-weight: 800;
+      }
+      .hint-toggle .hint-toggle-sub {
+        font-size: 10px;
+        color: var(--muted);
+        font-weight: 700;
+        letter-spacing: 0.2px;
+      }
       .freepiano .bkey.active {
         transform: translateY(2px);
         filter: brightness(0.98);
@@ -1392,6 +1408,13 @@
         }
       }
 
+      body.hints-hidden .cat-column {
+        display: none;
+      }
+      body.hints-hidden .play-wrap {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
       @media (orientation: landscape) and (max-width: 1024px) {
         :root {
           --play-height: clamp(340px, 78dvh, 520px);
@@ -1412,6 +1435,9 @@
           grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
           align-items: start;
           gap: 8px;
+        }
+        body.hints-hidden .play-wrap {
+          grid-template-columns: minmax(0, 1fr);
         }
         .cat-column {
           position: static;
@@ -1511,6 +1537,18 @@
           </button>
           <button id="btnSettings" class="secondary icon-button" title="設定">
             ⚙️
+          </button>
+          <button
+            id="btnToggleHints"
+            class="secondary hint-toggle"
+            type="button"
+            aria-pressed="false"
+            aria-expanded="true"
+            aria-controls="hintColumn"
+            aria-label="隱藏提示與鍵位說明"
+          >
+            <span class="hint-toggle-text">隱藏提示</span>
+            <span class="hint-toggle-sub">提示 / 鍵位說明</span>
           </button>
         </div>
 
@@ -1631,7 +1669,7 @@
             </div>
           </div>
 
-          <div class="cat-column">
+          <div class="cat-column" id="hintColumn">
             <div class="cat-sticker">
               <div class="cat-emoji">🐱</div>
               <strong>喵咪提示</strong>
@@ -1828,10 +1866,47 @@
         countdownEl = $("#countdown"),
         judgePanelEl = $("#judgePanel"),
         settingsPanelEl = $("#settingsPanel"),
-        btnMissionsEl = $("#btnMissions");
+        btnMissionsEl = $("#btnMissions"),
+        hintColumnEl = $("#hintColumn"),
+        hintToggleBtn = $("#btnToggleHints");
 
+      const HINT_VIS_KEY = "mew_hint_visibility_v1";
       const QUEST_KEY = "mew_quests_v1";
       const LB_KEY = "mew_leaderboard_v1";
+
+      let hintHidden = false;
+
+      function applyHintVisibility(hidden, { persist = true } = {}) {
+        document.body.classList.toggle("hints-hidden", hidden);
+        if (hintColumnEl) {
+          hintColumnEl.setAttribute("aria-hidden", hidden ? "true" : "false");
+        }
+        if (hintToggleBtn) {
+          hintToggleBtn.setAttribute("aria-pressed", hidden ? "true" : "false");
+          hintToggleBtn.setAttribute("aria-expanded", hidden ? "false" : "true");
+          hintToggleBtn.setAttribute(
+            "aria-label",
+            hidden ? "顯示提示與鍵位說明" : "隱藏提示與鍵位說明"
+          );
+          const txtEl = hintToggleBtn.querySelector(".hint-toggle-text");
+          if (txtEl) txtEl.textContent = hidden ? "顯示提示" : "隱藏提示";
+        }
+        if (persist) {
+          localStorage.setItem(HINT_VIS_KEY, hidden ? "hidden" : "shown");
+        }
+      }
+
+      function initHintToggle() {
+        const stored = localStorage.getItem(HINT_VIS_KEY);
+        hintHidden =
+          stored === "hidden" ||
+          (!stored && window.matchMedia("(max-width: 768px)").matches);
+        applyHintVisibility(hintHidden, { persist: false });
+        hintToggleBtn?.addEventListener("click", () => {
+          hintHidden = !hintHidden;
+          applyHintVisibility(hintHidden);
+        });
+      }
 
       const QUEST_DEFS = [
         {
@@ -3614,6 +3689,7 @@
       });
 
       (function init() {
+        initHintToggle();
         buildLanesOnce();
         buildFreePiano();
         reset(SONGS[0], "songs");
