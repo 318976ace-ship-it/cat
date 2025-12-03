@@ -339,6 +339,17 @@
         gap: 6px;
         flex-wrap: wrap;
       }
+      /* 簡潔模式：收合控制，讓鋼琴滿版 */
+      body.compact-ui .panel {
+        padding: 12px 14px;
+      }
+      body.compact-ui .panel .row:nth-child(n + 2),
+      body.compact-ui .hud {
+        display: none;
+      }
+      body.compact-ui .play-wrap {
+        margin-top: 4px;
+      }
 
       /* flash 給 score 用，沿用原動畫 */
       .hud-card.flash,
@@ -1542,6 +1553,15 @@
             ⚙️
           </button>
           <button
+            id="btnToggleUI"
+            class="secondary small"
+            type="button"
+            aria-pressed="false"
+            aria-label="收合其他控制"
+          >
+            收合控制
+          </button>
+          <button
             id="btnToggleHints"
             class="secondary hint-toggle"
             type="button"
@@ -1871,7 +1891,8 @@
         settingsPanelEl = $("#settingsPanel"),
         btnMissionsEl = $("#btnMissions"),
         hintColumnEl = $("#hintColumn"),
-        hintToggleBtn = $("#btnToggleHints");
+        hintToggleBtn = $("#btnToggleHints"),
+        btnToggleUI = $("#btnToggleUI");
 
       const HINT_VIS_KEY = "mew_hint_visibility_v1";
       const QUEST_KEY = "mew_quests_v1";
@@ -1909,6 +1930,18 @@
           hintHidden = !hintHidden;
           applyHintVisibility(hintHidden);
         });
+      }
+
+      function applyCompactUI(on) {
+        document.body.classList.toggle("compact-ui", on);
+        if (btnToggleUI) {
+          btnToggleUI.setAttribute("aria-pressed", on ? "true" : "false");
+          btnToggleUI.textContent = on ? "展開控制" : "收合控制";
+          btnToggleUI.setAttribute(
+            "aria-label",
+            on ? "展開其他控制" : "收合其他控制"
+          );
+        }
       }
 
       const QUEST_DEFS = [
@@ -3670,6 +3703,10 @@
         else resume();
       });
       $("#btnRestart").addEventListener("click", restart);
+      btnToggleUI?.addEventListener("click", () => {
+        const on = !document.body.classList.contains("compact-ui");
+        applyCompactUI(on);
+      });
       $("#btnAgain").addEventListener("click", (e) => {
         e.stopPropagation();
         resultEl.classList.remove("show");
