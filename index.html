@@ -643,8 +643,8 @@
       /* 方塊：半透明玻璃 + 小貓抓 */
       .tile {
         position: absolute;
-        left: 4px;
-        right: 4px;
+        left: 8px;
+        right: 8px;
         height: 120px;
         cursor: pointer;
         border-radius: 22px;
@@ -1372,7 +1372,7 @@
           grid-template-columns: minmax(0, 1fr);
         }
         body.hints-hidden {
-          --play-height: calc(94dvh - 24px);
+          --play-height: calc(82dvh - 40px);
         }
         .cat-column {
           position: absolute;
@@ -1392,15 +1392,13 @@
 
       @media (max-width: 768px) {
         :root {
-          --play-height: calc(92dvh - 30px);
+          --play-height: calc(88dvh - 40px);
         }
         .tile {
           height: 100px;
-          left: 0;
-          right: 0;
         }
         .hitline {
-          bottom: 50px;
+          bottom: 60px;
         }
         .grid {
           grid-template-columns: repeat(2, 1fr);
@@ -1422,7 +1420,7 @@
 
       @media (orientation: landscape) and (max-width: 1024px) {
         :root {
-          --play-height: clamp(460px, 94dvh, 660px);
+          --play-height: clamp(420px, 90dvh, 620px);
         }
         .shell {
           padding: 14px 16px 12px;
@@ -1466,11 +1464,9 @@
         }
         .tile {
           height: 96px;
-          left: 0;
-          right: 0;
         }
         .hitline {
-          bottom: 40px;
+          bottom: 48px;
         }
       }
     </style>
@@ -1560,13 +1556,6 @@
         </div>
 
         <div class="row">
-          <span class="field">
-            琴鍵模式
-            <select id="layoutSel">
-              <option value="desktop">桌機 12 鍵</option>
-              <option value="mobile">手機 8 鍵</option>
-            </select>
-          </span>
           <span class="field">
             模式
             <select id="modeSel">
@@ -1882,8 +1871,7 @@
         settingsPanelEl = $("#settingsPanel"),
         btnMissionsEl = $("#btnMissions"),
         hintColumnEl = $("#hintColumn"),
-        hintToggleBtn = $("#btnToggleHints"),
-        layoutSel = $("#layoutSel");
+        hintToggleBtn = $("#btnToggleHints");
 
       const HINT_VIS_KEY = "mew_hint_visibility_v1";
       const QUEST_KEY = "mew_quests_v1";
@@ -2352,14 +2340,11 @@
       /* 主鍵盤 & 音色 */
       const WHITE_LANES = [0, 2, 4, 5, 7, 9, 11];
       const BLACK_LANES = [1, 3, 6, 8, 10];
-
       const MOBILE_TARGET_OFFSETS = [0, 2, 4, 5, 7, 9, 11, 12];
       const LAYOUTS = {
         desktop: {
           id: "desktop",
           lanes: 12,
-          whiteLanes: WHITE_LANES,
-          blackLanes: BLACK_LANES,
           keyMap: {
             a: 0,
             w: 1,
@@ -2376,6 +2361,8 @@
           },
           midiOffset: (lane) => lane,
           mapLane: (lane) => lane,
+          whiteLanes: WHITE_LANES,
+          blackLanes: BLACK_LANES,
           freeLabels: {
             white: ["C(A)", "D(S)", "E(D)", "F(F)", "G(J)", "A(K)", "B(L)"],
             black: {
@@ -2387,11 +2374,9 @@
             },
           },
         },
-        mobile: {
-          id: "mobile",
+        mobile8: {
+          id: "mobile8",
           lanes: 8,
-          whiteLanes: [0, 1, 2, 3, 4, 5, 6, 7],
-          blackLanes: [],
           keyMap: {
             a: 0,
             s: 1,
@@ -2405,17 +2390,19 @@
           midiOffset: (lane) => MOBILE_TARGET_OFFSETS[lane] ?? lane,
           mapLane: (lane) => {
             if (lane < 0) return lane;
-            let bestIdx = 0;
+            let best = 0;
             let bestDiff = Infinity;
             MOBILE_TARGET_OFFSETS.forEach((off, idx) => {
               const diff = Math.abs(off - lane);
               if (diff < bestDiff) {
                 bestDiff = diff;
-                bestIdx = idx;
+                best = idx;
               }
             });
-            return bestIdx;
+            return best;
           },
+          whiteLanes: [0, 1, 2, 3, 4, 5, 6, 7],
+          blackLanes: [],
           freeLabels: {
             white: ["C(A)", "D(S)", "E(D)", "F(F)", "G(J)", "A(K)", "B(L)", "C5(;)"],
             black: {},
@@ -2429,12 +2416,12 @@
       let currentLayoutId = "desktop";
       let currentLayout = LAYOUTS.desktop;
       let keyMap = { ...LAYOUTS.desktop.keyMap };
+      function mapLaneForLayout(lane) {
+        return currentLayout.mapLane ? currentLayout.mapLane(lane) : lane;
+      }
       function mapSeqForLayout(seq) {
         if (!seq) return [];
-        if (currentLayoutId === "desktop") return [...seq];
-        return seq.map((lane) =>
-          lane < 0 ? -1 : currentLayout.mapLane ? currentLayout.mapLane(lane) : lane
-        );
+        return seq.map((lane) => (lane < 0 ? -1 : mapLaneForLayout(lane)));
       }
 
       function ensureAudio() {
@@ -3033,10 +3020,10 @@
       }
 
       const CONFIG = {
-        HIT_Y: 520,
+        HIT_Y: 420,
         TILE_H: 120,
         WIN: { perfect: 55, great: 95, good: 140 },
-        LEAD: 8,
+        LEAD: 6,
       };
       const SCOREMAP = { perfect: 300, great: 200, good: 100, miss: 0 };
 
@@ -3052,16 +3039,20 @@
 
       const speed = $("#speed"),
         speedVal = $("#speedVal");
-      const isMobileLike = window.matchMedia("(max-width: 1024px)").matches;
-      if (isMobileLike && Number(speed.value) > 0.9) {
+      const portraitMobile = window.matchMedia(
+        "(max-width: 820px) and (orientation: portrait)"
+      );
+      if (portraitMobile.matches && Number(speed.value) > 0.9) {
         speed.value = "0.90";
       }
-      if (layoutSel) {
-        layoutSel.value = isMobileLike ? "mobile" : "desktop";
-        currentLayoutId = layoutSel.value;
-        currentLayout = LAYOUTS[currentLayoutId];
-        keyMap = { ...currentLayout.keyMap };
+      function selectLayoutForViewport() {
+        const target = portraitMobile.matches ? "mobile8" : "desktop";
+        if (target !== currentLayoutId) {
+          applyLayout(target);
+        }
       }
+      portraitMobile.addEventListener("change", selectLayoutForViewport);
+      window.addEventListener("resize", selectLayoutForViewport);
       speed.addEventListener("input", () => {
         speedVal.textContent = Number(speed.value).toFixed(2) + "x";
         if (game && game.song) {
@@ -3074,16 +3065,15 @@
 
       function buildLanesOnce() {
         refreshLaneDom();
-        window.addEventListener("resize", refreshLaneDom);
       }
       function buildFreePiano() {
         freeWhites.innerHTML = "";
         freeBlacks.innerHTML = "";
         const labelsWhite = currentLayout.freeLabels.white || [];
         const labelsBlack = currentLayout.freeLabels.black || {};
-        const whiteLanes = currentLayout.whiteLanes || [];
-        const blackLanes = currentLayout.blackLanes || [];
-        const whiteCount = whiteLanes.length || 7;
+        const whiteLanes = currentLayout.whiteLanes || WHITE_LANES;
+        const blackLanes = currentLayout.blackLanes || BLACK_LANES;
+        const whiteCount = whiteLanes.length;
         for (let i = 0; i < whiteCount; i++) {
           const lane = whiteLanes[i];
           const w = document.createElement("div");
@@ -3097,10 +3087,9 @@
           freeWhites.appendChild(w);
         }
         const whiteWPercent = 100 / Math.max(1, whiteCount);
-        blackLanes.forEach((b) => {
-          const slot = WHITE_LANES.indexOf(b);
-          const slotIdx = slot >= 0 ? slot : Math.min(whiteCount - 1, b);
-          const center = slotIdx * whiteWPercent + whiteWPercent * 0.72;
+        blackLanes.forEach((b, idx) => {
+          const slot = Math.min(whiteCount - 1, idx);
+          const center = slot * whiteWPercent + whiteWPercent * 0.72;
           const bw = whiteWPercent * 0.6;
           const left = center - bw / 2;
           const bk = document.createElement("div");
@@ -3420,7 +3409,10 @@
         if (!game.drawn.has(idx)) return;
 
         const lane = game.seq[idx];
-        if (lane < 0) {
+        const laneNum = Number(lane);
+        const laneInputNum = Number(laneInput);
+        if (Number.isNaN(laneNum) || Number.isNaN(laneInputNum)) return;
+        if (laneNum < 0) {
           addScore("miss");
           game.judged[idx] = true;
           showJudge("MISS", "miss");
@@ -3434,7 +3426,7 @@
         if (ad <= CONFIG.WIN.perfect) r = "perfect";
         else if (ad <= CONFIG.WIN.great) r = "great";
         else if (ad <= CONFIG.WIN.good) r = "good";
-        if (laneInput !== lane) r = "miss";
+        if (laneInputNum !== laneNum) r = "miss";
 
         if (r === "miss") {
           addScore("miss");
@@ -3722,9 +3714,6 @@
           mode
         );
       });
-      layoutSel?.addEventListener("change", () => {
-        applyLayout(layoutSel.value);
-      });
       $("#songSel").addEventListener("change", () => {
         if (game?.running) pause();
         reset(
@@ -3803,6 +3792,7 @@
 
       (function init() {
         initHintToggle();
+        selectLayoutForViewport();
         buildLanesOnce();
         applyLayout(currentLayoutId);
         reset(SONGS[0], "songs");
