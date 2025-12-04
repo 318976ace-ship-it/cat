@@ -1588,7 +1588,7 @@
         <div class="landscape-icon">🔒</div>
         <div class="landscape-title">請直立模式遊玩</div>
         <div class="landscape-text">
-          手機橫向已關閉，請轉回直立。平板仍可橫向彈奏。
+          手機橫向已暫停，請轉回直立或關閉旋轉鎖。平板仍可橫向彈奏。
         </div>
       </div>
     </div>
@@ -2717,6 +2717,11 @@
         masterGain = null,
         bgmGain = null,
         currentTone = "soft";
+      const tonePresets = {
+        soft: { attack: 0.02, release: 0.4, type: "sine", detune: 0 },
+        bright: { attack: 0.01, release: 0.5, type: "triangle", detune: 8 },
+        synth: { attack: 0.02, release: 0.6, type: "sawtooth", detune: 0 },
+      };
       let currentLayoutId = "desktop";
       let currentLayout = LAYOUTS.desktop;
       let keyMap = { ...LAYOUTS.desktop.keyMap };
@@ -3422,6 +3427,19 @@
         return Number.isFinite(n) ? n : fallback;
       }
 
+      function setHitlineForViewport() {
+        const vh = window.innerHeight || 800;
+        const isPortrait =
+          window.matchMedia && window.matchMedia("(orientation: portrait)").matches;
+        const target = Math.round(
+          Math.max(50, Math.min(110, vh * (isPortrait ? 0.12 : 0.16)))
+        );
+        document.documentElement.style.setProperty(
+          "--hitline-bottom",
+          `${target}px`
+        );
+      }
+
       function syncPlayGeometry() {
         const laneCount = currentLayout?.lanes || 12;
         document.documentElement.style.setProperty(
@@ -3476,6 +3494,7 @@
       }
       function selectLayoutForViewport() {
         setAppHeight();
+        setHitlineForViewport();
         const isLandscape =
           window.matchMedia && window.matchMedia("(orientation: landscape)").matches;
         const longSide = Math.max(window.innerWidth, window.innerHeight);
@@ -4249,6 +4268,7 @@
       window.addEventListener("orientationchange", () => {
         syncPlayGeometry();
         setAppHeight();
+        setHitlineForViewport();
       });
       $("#btnAgain").addEventListener("click", (e) => {
         e.stopPropagation();
