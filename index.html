@@ -36,6 +36,7 @@
         --lane-count: 12;
         --tile-size: 120px;
         --hitline-bottom: 110px;
+        --app-height: 100vh;
       }
 
       /* 主題：薄荷牛奶 */
@@ -1520,7 +1521,7 @@
         max-width: 100%;
         width: 100%;
         padding: 8px;
-        min-height: 100vh;
+        min-height: var(--app-height, 100vh);
       }
       body.fullscreen-active header.nav {
         border-radius: 16px;
@@ -1530,7 +1531,7 @@
         padding: 12px;
       }
       body.fullscreen-active .play-wrap {
-        height: calc(100vh - 200px);
+        height: calc(var(--app-height, 100vh) - 160px);
         grid-template-columns: minmax(0, 1fr);
       }
       body.fullscreen-active .play {
@@ -2028,11 +2029,29 @@
         );
       }
 
+      function setAppHeight() {
+        const h =
+          (window.visualViewport && window.visualViewport.height) ||
+          window.innerHeight ||
+          0;
+        if (h > 0) {
+          document.documentElement.style.setProperty("--app-height", `${h}px`);
+        }
+      }
+
       async function enterFullscreen() {
+        setAppHeight();
         const target = document.documentElement;
+        let ok = false;
         try {
-          if (target.requestFullscreen) await target.requestFullscreen();
+          if (target.requestFullscreen) {
+            await target.requestFullscreen();
+            ok = true;
+          }
         } catch (e) {}
+        if (!ok) {
+          document.body.classList.add("fullscreen-active");
+        }
         try {
           if (screen.orientation?.lock) {
             const current = screen.orientation.type || "";
@@ -2046,14 +2065,18 @@
       }
 
       function exitFullscreen() {
+        document.body.classList.remove("fullscreen-active");
         if (document.fullscreenElement) {
           document.exitFullscreen().catch(() => {});
         }
       }
 
       function toggleFullscreen() {
-        if (document.fullscreenElement) exitFullscreen();
-        else enterFullscreen();
+        if (document.fullscreenElement || document.body.classList.contains("fullscreen-active")) {
+          exitFullscreen();
+        } else {
+          enterFullscreen();
+        }
       }
 
       const QUEST_DEFS = [
@@ -3198,10 +3221,12 @@
         );
         const hitlineBottom = cssNumber("--hitline-bottom", 90);
         const ph = playEl?.clientHeight || 560;
-        const maxHit = ph - hitlineBottom - tileSize * 0.5;
-        const minHit = tileSize * 2;
+        const lineH = 5;
+        const maxHit = ph - hitlineBottom - lineH;
+        const minHit = tileSize * 1.4;
+        const target = ph - hitlineBottom - tileSize * 0.25;
         CONFIG.TILE_H = tileSize;
-        CONFIG.HIT_Y = Math.max(minHit, Math.min(maxHit, ph * 0.82));
+        CONFIG.HIT_Y = Math.max(minHit, Math.min(maxHit, target));
       }
 
       let game = null,
@@ -3863,9 +3888,11 @@
         document.body.classList.toggle("fullscreen-active", on);
         updateFullscreenBtn();
         syncPlayGeometry();
+        setAppHeight();
       });
       window.addEventListener("orientationchange", () => {
         syncPlayGeometry();
+        setAppHeight();
       });
       $("#btnAgain").addEventListener("click", (e) => {
         e.stopPropagation();
@@ -3993,6 +4020,7 @@
         buildLanesOnce();
         applyLayout(currentLayoutId);
         updateFullscreenBtn();
+        setAppHeight();
         reset(SONGS[0], "songs");
         $("#speed").dispatchEvent(new Event("input"));
         renderQuests();
