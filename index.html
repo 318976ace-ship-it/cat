@@ -3743,16 +3743,16 @@
           const y = yForPhase(phase);
           if (y < -CONFIG.TILE_H || y > CONFIG.HIT_Y + CONFIG.TILE_H) continue;
           game.drawn.add(idx);
-          let d = tileMap.get(idx);
-          if (!d) {
-            d = document.createElement("div");
-            d.className = "tile";
-            d.dataset.idx = idx;
-            d.dataset.lane = laneIdx;
-            d.addEventListener("pointerdown", (e) => {
-              e.stopPropagation();
-              judge(laneIdx);
-            });
+            let d = tileMap.get(idx);
+            if (!d) {
+              d = document.createElement("div");
+              d.className = "tile";
+              d.dataset.idx = idx;
+              d.dataset.lane = laneIdx;
+              d.addEventListener("pointerdown", (e) => {
+                e.stopPropagation();
+                judge(laneIdx, idx);
+              });
             const laneEl = lanesEl.querySelector(
               `.lane[data-lane="${laneIdx}"]`
             );
@@ -3850,7 +3850,7 @@
         if (freeLastHit - freeStartTime >= 90000) completeQuest("Q34_free90");
       }
 
-      function judge(laneInput) {
+      function judge(laneInput, idxHint = null) {
         if (!game) return;
 
         // 自由彈奏
@@ -3865,25 +3865,49 @@
         if (!game.running || game.mode !== "songs") return;
 
         const t = now() - game.t0 - autoOffset;
-        const idx = currentBeatIndex(t + autoOffset);
-        if (idx < 0 || idx >= game.seq.length) return;
-        if (game.judged[idx]) return;
-        if (!game.drawn.has(idx)) return;
-
-        const lane = game.seq[idx];
-        const laneNum = Number(lane);
         const laneInputNum = Number(laneInput);
-        if (Number.isNaN(laneNum) || Number.isNaN(laneInputNum)) return;
+        if (Number.isNaN(laneInputNum)) return;
+
+        const evalHit = (idx) => {
+          if (idx < 0 || idx >= game.seq.length) return null;
+          if (game.judged[idx]) return null;
+          if (!game.drawn.has(idx)) return null;
+          const lane = Number(game.seq[idx]);
+          if (Number.isNaN(lane)) return null;
+          const targetT = (idx + 1) * game.beatMs;
+          const dt = t - targetT;
+          const ad = Math.abs(dt);
+          return { idx, lane, dt, ad };
+        };
+
+        let best = null;
+        if (idxHint !== null && idxHint !== undefined) {
+          const cand = evalHit(Number(idxHint));
+          if (cand) best = cand;
+        } else {
+          const baseIdx = currentBeatIndex(t + autoOffset);
+          for (let offset = -1; offset <= 1; offset++) {
+            const cand = evalHit(baseIdx + offset);
+            if (!cand) continue;
+            if (cand.lane !== laneInputNum) continue;
+            if (!best || cand.ad < best.ad) best = cand;
+          }
+        }
+
+        // 空鍵 / 超出判定範圍：忽略，不記 Miss，避免後續自動 Miss 重複累計
+        if (!best) return;
+
+        const laneNum = best.lane;
+        if (Number.isNaN(laneNum)) return;
         if (laneNum < 0) {
           addScore("miss");
-          game.judged[idx] = true;
+          game.judged[best.idx] = true;
+          removeTile(best.idx);
           showJudge("MISS", "miss");
           return;
         }
 
-        const targetT = (idx + 1) * game.beatMs;
-        const dt = t - targetT;
-        const ad = Math.abs(dt);
+        const ad = best.ad;
         let r = "miss";
         if (ad <= CONFIG.WIN.perfect) r = "perfect";
         else if (ad <= CONFIG.WIN.great) r = "great";
@@ -3897,20 +3921,20 @@
           addScore(r);
           showJudge(r.toUpperCase(), r);
           ensureAudio();
-          playSynthByLane(lane, 0.18);
-          flashFreeKey(lane);
+          playSynthByLane(laneNum, 0.18);
+          flashFreeKey(laneNum);
           if ([20, 50, 100].includes(game.combo)) {
             triggerComboEffect(game.combo);
           }
-          autoSamples.push(dt);
+          autoSamples.push(best.dt);
           if (autoSamples.length > AUTO_MAX_SAMPLES) autoSamples.shift();
           const avg =
             autoSamples.reduce((a, b) => a + b, 0) / autoSamples.length;
           autoOffset = Math.max(-120, Math.min(120, Math.round(avg)));
         }
 
-        game.judged[idx] = true;
-        removeTile(idx);
+        game.judged[best.idx] = true;
+        removeTile(best.idx);
         if (game.judged.every(Boolean)) finish();
       }
 
