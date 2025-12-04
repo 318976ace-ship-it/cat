@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-Hant">
   <head>
     <meta charset="utf-8" />
@@ -2008,6 +2008,9 @@
         countdownEl = $("#countdown"),
         judgePanelEl = $("#judgePanel"),
         settingsPanelEl = $("#settingsPanel"),
+        songSel = $("#songSel"),
+        speed = $("#speed"),
+        speedVal = $("#speedVal"),
         btnMissionsEl = $("#btnMissions"),
         hintColumnEl = $("#hintColumn"),
         hintToggleBtn = $("#btnToggleHints"),
@@ -2582,23 +2585,37 @@
 
       /* 排行榜 */
       function loadLeaderboard() {
-        return readJSON(LB_KEY, []);
+        return dedupeLeaderboard(readJSON(LB_KEY, []));
+      }
+      function dedupeLeaderboard(list) {
+        const byKey = new Map();
+        list.forEach((e) => {
+          if (!e) return;
+          const songKey = e.songId || "";
+          const speedKey = e.speed || "1.00x";
+          const key = `${songKey}__${speedKey}`;
+          const prev = byKey.get(key);
+          if (!prev || e.score > prev.score || (e.score === prev.score && (e.acc || 0) >= (prev.acc || 0))) {
+            byKey.set(key, e);
+          }
+        });
+        return Array.from(byKey.values());
       }
       function saveLeaderboard(list) {
         writeJSON(LB_KEY, list);
       }
       function updateLeaderboard(entry) {
-        let list = loadLeaderboard();
-        list.push(entry);
+        let list = dedupeLeaderboard([...loadLeaderboard(), entry]);
         list.sort((a, b) => b.score - a.score || b.acc - a.acc);
         if (list.length > 30) list = list.slice(0, 30);
         saveLeaderboard(list);
       }
+
       function renderLeaderboard() {
         const list = loadLeaderboard();
         rankBodyEl.innerHTML = "";
-        const currentSongId = $("#songSel")?.value || "";
-        const currentSpeed = Number($("#speed")?.value || 1).toFixed(2) + "x";
+        const currentSongId = songSel?.value || "";
+        const currentSpeed = Number(speed?.value || 1).toFixed(2) + "x";
         const scoped = list.filter(
           (e) => e.songId === currentSongId && e.speed === currentSpeed
         );
@@ -2774,7 +2791,7 @@
         const pattern = song.bgmPattern || [0, 5, 7, 12];
         const base = (song.baseNote ?? 60) - 12;
         let idx = 0;
-        const speedFactor = Number($("#speed").value) || 1;
+        const speedFactor = Number(speed.value) || 1;
         const beatMs = 60000 / (song.bpm || 110) / speedFactor;
         const interval = Math.max(160, beatMs * 2.2);
         synthBgmTimer = setInterval(() => {
@@ -2797,7 +2814,7 @@
       async function startBgm(song) {
         stopAllBgm();
         if (!song) return;
-        const speedVal = Number($("#speed").value) || 1;
+        const speedVal = Number(speed.value) || 1;
         bgm.volume = Number($("#bgmVol").value);
         bgm.playbackRate = speedVal;
         if (song.bgmFile) {
@@ -3367,7 +3384,6 @@
         return songs;
       })();
 
-      const songSel = $("#songSel");
       SONGS.forEach((s) => {
         const o = document.createElement("option");
         o.value = s.id;
@@ -3452,8 +3468,6 @@
       let freeLastHit = null;
       let freeHitCount = 0;
 
-      const speed = $("#speed"),
-        speedVal = $("#speedVal");
       const portraitMobile = window.matchMedia(
         "(max-width: 820px) and (orientation: portrait)"
       );
@@ -3850,53 +3864,33 @@
         if (freeLastHit - freeStartTime >= 90000) completeQuest("Q34_free90");
       }
 
-      function judge(laneInput, idxHint = null) {
-        if (!game) return;
+      function evalHitAt(idx, t) {
+        if (idx < 0 || idx >= game.seq.length) return null;
+        if (game.judged[idx]) return null;
+        if (!game.drawn.has(idx)) return null;
+        const lane = Number(game.seq[idx]);
+        if (Number.isNaN(lane)) return null;
+        const targetT = (idx + 1) * game.beatMs;
+        const dt = t - targetT;
+        const ad = Math.abs(dt);
+        return { idx, lane, dt, ad };
+      }
 
-        // 自由彈奏
-        if (game.mode === "free") {
-          ensureAudio();
-          playSynthByLane(laneInput, 0.18);
-          flashFreeKey(laneInput);
-          trackFreePlay();
-          return;
-        }
-
-        if (!game.running || game.mode !== "songs") return;
-
-        const t = now() - game.t0 - autoOffset;
-        const laneInputNum = Number(laneInput);
-        if (Number.isNaN(laneInputNum)) return;
-
-        const evalHit = (idx) => {
-          if (idx < 0 || idx >= game.seq.length) return null;
-          if (game.judged[idx]) return null;
-          if (!game.drawn.has(idx)) return null;
-          const lane = Number(game.seq[idx]);
-          if (Number.isNaN(lane)) return null;
-          const targetT = (idx + 1) * game.beatMs;
-          const dt = t - targetT;
-          const ad = Math.abs(dt);
-          return { idx, lane, dt, ad };
-        };
-
-        let best = null;
+      function findHitCandidate(t, laneInputNum, idxHint) {
         if (idxHint !== null && idxHint !== undefined) {
-          const cand = evalHit(Number(idxHint));
-          if (cand) best = cand;
-        } else {
-          const baseIdx = currentBeatIndex(t + autoOffset);
-          for (let offset = -1; offset <= 1; offset++) {
-            const cand = evalHit(baseIdx + offset);
-            if (!cand) continue;
-            if (cand.lane !== laneInputNum) continue;
-            if (!best || cand.ad < best.ad) best = cand;
-          }
+          return evalHitAt(Number(idxHint), t);
         }
+        const baseIdx = currentBeatIndex(t + autoOffset);
+        let best = null;
+        for (let offset = -1; offset <= 1; offset++) {
+          const cand = evalHitAt(baseIdx + offset, t);
+          if (!cand || cand.lane !== laneInputNum) continue;
+          if (!best || cand.ad < best.ad) best = cand;
+        }
+        return best;
+      }
 
-        // 空鍵 / 超出判定範圍：忽略，不記 Miss，避免後續自動 Miss 重複累計
-        if (!best) return;
-
+      function handleHit(best, laneInputNum) {
         const laneNum = best.lane;
         if (Number.isNaN(laneNum)) return;
         if (laneNum < 0) {
@@ -3938,6 +3932,30 @@
         if (game.judged.every(Boolean)) finish();
       }
 
+      function judge(laneInput, idxHint = null) {
+        if (!game) return;
+
+        // 自由彈奏
+        if (game.mode === "free") {
+          ensureAudio();
+          playSynthByLane(laneInput, 0.18);
+          flashFreeKey(laneInput);
+          trackFreePlay();
+          return;
+        }
+
+        if (!game.running || game.mode !== "songs") return;
+
+        const t = now() - game.t0 - autoOffset;
+        const laneInputNum = Number(laneInput);
+        if (Number.isNaN(laneInputNum)) return;
+
+        const best = findHitCandidate(t, laneInputNum, idxHint);
+        // 空鍵 / 超出判定範圍：忽略，不記 Miss，避免後續自動 Miss 重複累計
+        if (!best) return;
+        handleHit(best, laneInputNum);
+      }
+
       function addScore(r) {
         if (r === "miss") {
           game.combo = 0;
@@ -3969,7 +3987,7 @@
         const m = t.miss;
         const mc = game.maxCombo;
         const id = game.song?.id || null;
-        const spd = Number($("#speed").value);
+        const spd = Number(speed.value);
 
         if (s > 0) completeQuest("Q1_first_clear");
         if (s >= 3000) completeQuest("Q2_just_try");
@@ -4086,7 +4104,7 @@
 
         const store = readJSON(STORE_KEY, {});
         store.high = store.high || {};
-        const speedVal = Number($("#speed").value).toFixed(2);
+        const speedVal = Number(speed.value).toFixed(2);
         const songKey = game.song?.id || "free";
         const key = `song_${songKey}_${speedVal}`;
         const prev = store.high[key]?.score || 0;
@@ -4119,7 +4137,7 @@
           acc,
           songId: game.song?.id || "",
           songName: game.song?.name || "自由彈奏",
-          speed: Number($("#speed").value).toFixed(2) + "x",
+          speed: Number(speed.value).toFixed(2) + "x",
           date: nowStr,
         });
 
@@ -4141,7 +4159,7 @@
       function refreshBest() {
         const store = readJSON(STORE_KEY, {});
         const songKey = game?.song?.id || "free";
-        const speedVal = Number($("#speed").value).toFixed(2);
+        const speedVal = Number(speed.value).toFixed(2);
         const key = `song_${songKey}_${speedVal}`;
         const val =
           store.high?.[key]?.score ||
@@ -4202,7 +4220,7 @@
         const song =
           mode === "free"
             ? null
-            : SONGS.find((s) => s.id === $("#songSel").value) || SONGS[0];
+            : SONGS.find((s) => s.id === songSel.value) || SONGS[0];
         reset(song, mode);
         start();
         refreshBest();
@@ -4245,7 +4263,7 @@
       $("#btnChangeSong").addEventListener("click", (e) => {
         e.stopPropagation();
         resultEl.classList.remove("show");
-        const currentId = game?.song?.id || $("#songSel").value;
+        const currentId = game?.song?.id || songSel.value;
         const idx = SONGS.findIndex((s) => s.id === currentId);
         const nextIdx = (idx + 1) % SONGS.length;
         const nextSong = SONGS[nextIdx];
@@ -4257,10 +4275,10 @@
 
       $("#btnSpeedUp").addEventListener("click", (e) => {
         e.stopPropagation();
-        let spd = Number($("#speed").value);
+        let spd = Number(speed.value);
         spd = Math.min(1.6, spd + 0.2);
-        $("#speed").value = spd.toFixed(2);
-        $("#speed").dispatchEvent(new Event("input"));
+        speed.value = spd.toFixed(2);
+        speed.dispatchEvent(new Event("input"));
         resultEl.classList.remove("show");
         reset(game?.song || SONGS[0], "songs");
         refreshBest();
@@ -4272,14 +4290,14 @@
         reset(
           mode === "free"
             ? null
-            : SONGS.find((s) => s.id === $("#songSel").value) || SONGS[0],
+            : SONGS.find((s) => s.id === songSel.value) || SONGS[0],
           mode
         );
       });
-      $("#songSel").addEventListener("change", () => {
+      songSel.addEventListener("change", () => {
         if (game?.running) pause();
         reset(
-          SONGS.find((s) => s.id === $("#songSel").value) || SONGS[0],
+          SONGS.find((s) => s.id === songSel.value) || SONGS[0],
           "songs"
         );
         refreshBest();
@@ -4374,7 +4392,7 @@
         updateFullscreenBtn();
         setAppHeight();
         reset(SONGS[0], "songs");
-        $("#speed").dispatchEvent(new Event("input"));
+        speed.dispatchEvent(new Event("input"));
         renderQuests();
         renderChapters();
       })();
@@ -4433,3 +4451,10 @@
     </script>
   </body>
 </html>
+
+
+
+
+
+
+
