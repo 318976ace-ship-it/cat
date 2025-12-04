@@ -3191,7 +3191,7 @@
         HIT_Y: 420,
         TILE_H: 120,
         WIN: { perfect: 55, great: 95, good: 140 },
-        LEAD: 6,
+        LEAD: 8,
       };
       const SCOREMAP = { perfect: 300, great: 200, good: 100, miss: 0 };
 
@@ -3223,8 +3223,17 @@
         const ph = playEl?.clientHeight || 560;
         const lineH = 5;
         const maxHit = ph - hitlineBottom - lineH;
-        const minHit = tileSize * 1.4;
-        const target = ph - hitlineBottom - tileSize * 0.25;
+        const minHit = tileSize * 1.2;
+        const isFullscreen =
+          document.fullscreenElement ||
+          document.body.classList.contains("fullscreen-active");
+        const isLandscape =
+          window.matchMedia && window.matchMedia("(orientation: landscape)").matches;
+        const upperCap = isFullscreen && isLandscape ? ph * 0.68 : ph * 0.78;
+        const target = Math.min(
+          upperCap,
+          ph - hitlineBottom - tileSize * 0.25
+        );
         CONFIG.TILE_H = tileSize;
         CONFIG.HIT_Y = Math.max(minHit, Math.min(maxHit, target));
       }
