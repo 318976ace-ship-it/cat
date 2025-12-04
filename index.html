@@ -1543,9 +1543,55 @@
         right: 8px;
         top: 8px;
       }
+
+      .landscape-block {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 200;
+        padding: 16px;
+      }
+      .landscape-block.show {
+        display: flex;
+      }
+      .landscape-block-card {
+        width: min(360px, 90vw);
+        background: #fffdf8;
+        border-radius: 18px;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+        padding: 16px 18px;
+        text-align: center;
+      }
+      .landscape-icon {
+        font-size: 28px;
+        margin-bottom: 6px;
+      }
+      .landscape-title {
+        font-weight: 900;
+        font-size: 15px;
+        margin-bottom: 4px;
+        color: #6b4d3e;
+      }
+      .landscape-text {
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
     </style>
   </head>
   <body>
+    <div id="landscapeBlock" class="landscape-block" aria-hidden="true">
+      <div class="landscape-block-card">
+        <div class="landscape-icon">🔒</div>
+        <div class="landscape-title">請直立模式遊玩</div>
+        <div class="landscape-text">
+          手機橫向已關閉，請轉回直立。平板仍可橫向彈奏。
+        </div>
+      </div>
+    </div>
     <!-- Start Overlay -->
     <div id="startOverlay" class="start-overlay">
       <div class="start-card">
@@ -1966,7 +2012,8 @@
         hintColumnEl = $("#hintColumn"),
         hintToggleBtn = $("#btnToggleHints"),
         btnToggleUI = $("#btnToggleUI"),
-        btnFullscreen = $("#btnFullscreen");
+        btnFullscreen = $("#btnFullscreen"),
+        landscapeBlockEl = $("#landscapeBlock");
 
       const HINT_VIS_KEY = "mew_hint_visibility_v1";
       const QUEST_KEY = "mew_quests_v1";
@@ -3257,7 +3304,22 @@
         speed.value = "0.90";
       }
       function selectLayoutForViewport() {
-        const target = portraitMobile.matches ? "mobile8" : "desktop";
+        setAppHeight();
+        const isLandscape =
+          window.matchMedia && window.matchMedia("(orientation: landscape)").matches;
+        const longSide = Math.max(window.innerWidth, window.innerHeight);
+        const isTabletOrWide = longSide >= 900;
+        const blocked = isLandscape && !isTabletOrWide;
+        document.body.classList.toggle("mobile-landscape-blocked", blocked);
+        if (landscapeBlockEl)
+          landscapeBlockEl.classList.toggle("show", blocked);
+        if (blocked && document.fullscreenElement) exitFullscreen();
+
+        const target = blocked
+          ? "mobile8"
+          : portraitMobile.matches
+          ? "mobile8"
+          : "desktop";
         if (target !== currentLayoutId) {
           applyLayout(target);
         } else {
