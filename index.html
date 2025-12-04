@@ -33,6 +33,9 @@
         --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.1);
         --shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
         --play-height: 560px;
+        --lane-count: 12;
+        --tile-size: 120px;
+        --hitline-bottom: 110px;
       }
 
       /* 主題：薄荷牛奶 */
@@ -628,7 +631,7 @@
         position: absolute;
         left: 0;
         right: 0;
-        bottom: 110px;
+        bottom: var(--hitline-bottom);
         height: 5px;
         background: var(--hit);
         box-shadow: 0 0 12px rgba(255, 185, 128, 0.7);
@@ -666,7 +669,7 @@
         position: absolute;
         left: 8px;
         right: 8px;
-        height: 120px;
+        height: var(--tile-size);
         cursor: pointer;
         border-radius: 22px;
         background: linear-gradient(145deg, #fffdfc, #ffeede);
@@ -1390,6 +1393,14 @@
       }
 
       @media (max-width: 768px) {
+        :root {
+          --tile-size: clamp(
+            90px,
+            calc(((100vw - 48px) / var(--lane-count, 8)) - 4px),
+            140px
+          );
+          --hitline-bottom: 70px;
+        }
         .play-wrap {
           grid-template-columns: minmax(0, 1fr);
         }
@@ -1442,6 +1453,14 @@
 
       @media (orientation: landscape) and (max-width: 1024px) {
         :root {
+          --tile-size: clamp(
+            96px,
+            calc(((100vw - 120px) / var(--lane-count, 8)) + 4px),
+            150px
+          );
+          --hitline-bottom: 50px;
+        }
+        :root {
           --play-height: clamp(420px, 90dvh, 620px);
         }
         .shell {
@@ -1485,11 +1504,43 @@
           min-width: 0;
         }
         .tile {
-          height: 96px;
+          height: var(--tile-size);
         }
         .hitline {
-          bottom: 48px;
+          bottom: var(--hitline-bottom);
         }
+      }
+
+      /* 全螢幕滿版：減少邊距、讓 play 占滿可用高度 */
+      body.fullscreen-active {
+        padding: 0;
+        margin: 0;
+      }
+      body.fullscreen-active .shell {
+        max-width: 100%;
+        width: 100%;
+        padding: 8px;
+        min-height: 100vh;
+      }
+      body.fullscreen-active header.nav {
+        border-radius: 16px;
+      }
+      body.fullscreen-active .panel {
+        border-radius: 16px;
+        padding: 12px;
+      }
+      body.fullscreen-active .play-wrap {
+        height: calc(100vh - 200px);
+        grid-template-columns: minmax(0, 1fr);
+      }
+      body.fullscreen-active .play {
+        height: 100%;
+        border-radius: 20px;
+      }
+      body.fullscreen-active .cat-column {
+        position: absolute;
+        right: 8px;
+        top: 8px;
       }
     </style>
   </head>
@@ -1571,6 +1622,15 @@
             aria-label="收合其他控制"
           >
             收合功能
+          </button>
+          <button
+            id="btnFullscreen"
+            class="secondary small"
+            type="button"
+            aria-pressed="false"
+            aria-label="切換全螢幕模式"
+          >
+            全螢幕
           </button>
           <button
             id="btnToggleHints"
@@ -1656,7 +1716,7 @@
           </div>
         </div>
 
-        <div class="play-wrap">
+        <div class="play-wrap" id="playWrap">
           <div class="play" id="play">
             <div class="lanes" id="lanes"></div>
             <div class="hitline"></div>
@@ -1877,6 +1937,7 @@
       const $ = (s) => document.querySelector(s);
 
       const playEl = $("#play");
+      const playWrapEl = $("#playWrap");
       const lanesEl = $("#lanes"),
         judgeEl = $("#judge"),
         bestEl = $("#best"),
@@ -1903,7 +1964,8 @@
         btnMissionsEl = $("#btnMissions"),
         hintColumnEl = $("#hintColumn"),
         hintToggleBtn = $("#btnToggleHints"),
-        btnToggleUI = $("#btnToggleUI");
+        btnToggleUI = $("#btnToggleUI"),
+        btnFullscreen = $("#btnFullscreen");
 
       const HINT_VIS_KEY = "mew_hint_visibility_v1";
       const QUEST_KEY = "mew_quests_v1";
@@ -1953,6 +2015,45 @@
             on ? "展開其他功能" : "收合其他功能"
           );
         }
+      }
+
+      function updateFullscreenBtn() {
+        if (!btnFullscreen) return;
+        const on = Boolean(document.fullscreenElement);
+        btnFullscreen.textContent = on ? "正常模式" : "全螢幕";
+        btnFullscreen.setAttribute("aria-pressed", on ? "true" : "false");
+        btnFullscreen.setAttribute(
+          "aria-label",
+          on ? "退出全螢幕回正常模式" : "切換全螢幕模式"
+        );
+      }
+
+      async function enterFullscreen() {
+        const target = document.documentElement;
+        try {
+          if (target.requestFullscreen) await target.requestFullscreen();
+        } catch (e) {}
+        try {
+          if (screen.orientation?.lock) {
+            const current = screen.orientation.type || "";
+            if (current.includes("portrait")) {
+              await screen.orientation.lock("portrait").catch(() => {});
+            } else if (current.includes("landscape")) {
+              await screen.orientation.lock("landscape").catch(() => {});
+            }
+          }
+        } catch (e) {}
+      }
+
+      function exitFullscreen() {
+        if (document.fullscreenElement) {
+          document.exitFullscreen().catch(() => {});
+        }
+      }
+
+      function toggleFullscreen() {
+        if (document.fullscreenElement) exitFullscreen();
+        else enterFullscreen();
       }
 
       const QUEST_DEFS = [
@@ -3071,6 +3172,38 @@
       };
       const SCOREMAP = { perfect: 300, great: 200, good: 100, miss: 0 };
 
+      function cssNumber(varName, fallback) {
+        const v = getComputedStyle(document.documentElement).getPropertyValue(
+          varName
+        );
+        const n = Number.parseFloat(v);
+        return Number.isFinite(n) ? n : fallback;
+      }
+
+      function syncPlayGeometry() {
+        const laneCount = currentLayout?.lanes || 12;
+        document.documentElement.style.setProperty(
+          "--lane-count",
+          String(laneCount)
+        );
+        const playW = playEl?.clientWidth || 0;
+        const laneW = laneCount > 0 && playW ? playW / laneCount : 0;
+        const cssTile = cssNumber("--tile-size", CONFIG.TILE_H);
+        const autoTile =
+          laneW > 0 ? Math.max(70, Math.min(200, laneW + 12)) : cssTile;
+        const tileSize = Number.isFinite(autoTile) ? autoTile : cssTile;
+        document.documentElement.style.setProperty(
+          "--tile-size",
+          `${tileSize}px`
+        );
+        const hitlineBottom = cssNumber("--hitline-bottom", 90);
+        const ph = playEl?.clientHeight || 560;
+        const maxHit = ph - hitlineBottom - tileSize * 0.5;
+        const minHit = tileSize * 2;
+        CONFIG.TILE_H = tileSize;
+        CONFIG.HIT_Y = Math.max(minHit, Math.min(maxHit, ph * 0.82));
+      }
+
       let game = null,
         endTimer = null,
         autoOffset = 0,
@@ -3093,6 +3226,8 @@
         const target = portraitMobile.matches ? "mobile8" : "desktop";
         if (target !== currentLayoutId) {
           applyLayout(target);
+        } else {
+          syncPlayGeometry();
         }
       }
       portraitMobile.addEventListener("change", selectLayoutForViewport);
@@ -3158,6 +3293,7 @@
         keyMap = { ...currentLayout.keyMap };
         refreshLaneDom();
         buildFreePiano();
+        syncPlayGeometry();
         if (game) {
           const song = game.song || SONGS[0];
           const mode = game.mode;
@@ -3718,6 +3854,19 @@
         const on = !document.body.classList.contains("compact-ui");
         applyCompactUI(on);
       });
+      btnFullscreen?.addEventListener("click", (e) => {
+        e.preventDefault();
+        toggleFullscreen();
+      });
+      document.addEventListener("fullscreenchange", () => {
+        const on = Boolean(document.fullscreenElement);
+        document.body.classList.toggle("fullscreen-active", on);
+        updateFullscreenBtn();
+        syncPlayGeometry();
+      });
+      window.addEventListener("orientationchange", () => {
+        syncPlayGeometry();
+      });
       $("#btnAgain").addEventListener("click", (e) => {
         e.stopPropagation();
         resultEl.classList.remove("show");
@@ -3843,6 +3992,7 @@
         selectLayoutForViewport();
         buildLanesOnce();
         applyLayout(currentLayoutId);
+        updateFullscreenBtn();
         reset(SONGS[0], "songs");
         $("#speed").dispatchEvent(new Event("input"));
         renderQuests();
