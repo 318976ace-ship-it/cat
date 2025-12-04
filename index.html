@@ -2015,6 +2015,71 @@
         btnFullscreen = $("#btnFullscreen"),
         landscapeBlockEl = $("#landscapeBlock");
 
+      /* localStorage 安全封裝 */
+      const storage = (() => {
+        let supported = true;
+        try {
+          const probeKey = "__mew_probe__";
+          window.localStorage.setItem(probeKey, "1");
+          window.localStorage.removeItem(probeKey);
+        } catch (e) {
+          supported = false;
+        }
+        const mem = {};
+        return {
+          supported,
+          get: (k) => {
+            try {
+              return supported ? window.localStorage.getItem(k) : mem[k] ?? null;
+            } catch (e) {
+              return mem[k] ?? null;
+            }
+          },
+          set: (k, v) => {
+            try {
+              if (supported) window.localStorage.setItem(k, v);
+              else mem[k] = v;
+            } catch (e) {
+              mem[k] = v;
+            }
+          },
+          remove: (k) => {
+            try {
+              if (supported) window.localStorage.removeItem(k);
+              else delete mem[k];
+            } catch (e) {
+              delete mem[k];
+            }
+          },
+        };
+      })();
+      function cloneVal(v) {
+        try {
+          return structuredClone(v);
+        } catch (e) {
+          try {
+            return JSON.parse(JSON.stringify(v));
+          } catch (e) {
+            return v;
+          }
+        }
+      }
+      function readJSON(key, fallback) {
+        try {
+          const raw = storage.get(key);
+          if (!raw) return cloneVal(fallback);
+          return JSON.parse(raw);
+        } catch (e) {
+          return cloneVal(fallback);
+        }
+      }
+      function writeJSON(key, val) {
+        try {
+          storage.set(key, JSON.stringify(val));
+        } catch (e) {}
+      }
+      const STORE_KEY = "pianotiles12_realkeys_v2";
+
       const HINT_VIS_KEY = "mew_hint_visibility_v1";
       const QUEST_KEY = "mew_quests_v1";
       const LB_KEY = "mew_leaderboard_v1";
@@ -2037,12 +2102,12 @@
           if (txtEl) txtEl.textContent = hidden ? "顯示提示" : "隱藏提示";
         }
         if (persist) {
-          localStorage.setItem(HINT_VIS_KEY, hidden ? "hidden" : "shown");
+          storage.set(HINT_VIS_KEY, hidden ? "hidden" : "shown");
         }
       }
 
       function initHintToggle() {
-        const stored = localStorage.getItem(HINT_VIS_KEY);
+        const stored = storage.get(HINT_VIS_KEY);
         hintHidden =
           stored === "hidden" ||
           (!stored && window.matchMedia("(max-width: 768px)").matches);
@@ -2382,7 +2447,7 @@
         { id: "ch5", name: "Chapter 5 自由創作篇" },
       ];
 
-      let quests = JSON.parse(localStorage.getItem(QUEST_KEY) || "{}");
+      let quests = readJSON(QUEST_KEY, {});
 
       /* Toast */
       let toastQueue = [];
@@ -2420,7 +2485,7 @@
         return new Date().toISOString().slice(0, 10);
       }
       function saveQuests() {
-        localStorage.setItem(QUEST_KEY, JSON.stringify(quests));
+        writeJSON(QUEST_KEY, quests);
       }
       function markMissionsNew() {
         btnMissionsEl.classList.add("has-new");
@@ -2517,10 +2582,10 @@
 
       /* 排行榜 */
       function loadLeaderboard() {
-        return JSON.parse(localStorage.getItem(LB_KEY) || "[]");
+        return readJSON(LB_KEY, []);
       }
       function saveLeaderboard(list) {
-        localStorage.setItem(LB_KEY, JSON.stringify(list));
+        writeJSON(LB_KEY, list);
       }
       function updateLeaderboard(entry) {
         let list = loadLeaderboard();
@@ -2532,12 +2597,18 @@
       function renderLeaderboard() {
         const list = loadLeaderboard();
         rankBodyEl.innerHTML = "";
-        if (!list.length) {
+        const currentSongId = $("#songSel")?.value || "";
+        const currentSpeed = Number($("#speed")?.value || 1).toFixed(2) + "x";
+        const scoped = list.filter(
+          (e) => e.songId === currentSongId && e.speed === currentSpeed
+        );
+        const display = scoped.length ? scoped : list;
+        if (!display.length) {
           rankEmptyEl.style.display = "block";
           return;
         }
         rankEmptyEl.style.display = "none";
-        const top = list.slice(0, 5);
+        const top = display.slice(0, 5);
         top.forEach((e, i) => {
           const tr = document.createElement("tr");
           tr.innerHTML = `
@@ -2627,6 +2698,7 @@
 
       let audioCtx = null,
         masterGain = null,
+        bgmGain = null,
         currentTone = "soft";
       let currentLayoutId = "desktop";
       let currentLayout = LAYOUTS.desktop;
@@ -2647,6 +2719,14 @@
           masterGain.connect(audioCtx.destination);
         }
       }
+      function ensureBgmGain() {
+        ensureAudio();
+        if (!bgmGain) {
+          bgmGain = audioCtx.createGain();
+          bgmGain.gain.value = Number($("#bgmVol").value);
+          bgmGain.connect(audioCtx.destination);
+        }
+      }
       ["click", "touchstart", "keydown"].forEach((ev) => {
         window.addEventListener(
           ev,
@@ -2665,8 +2745,84 @@
       bgm.preload = "auto";
       bgm.crossOrigin = "anonymous";
       let bgmStopTimer = null;
+      let synthBgmTimer = null;
+      function stopSynthBgm() {
+        if (synthBgmTimer) {
+          clearInterval(synthBgmTimer);
+          synthBgmTimer = null;
+        }
+      }
+      function playBgmTone(midi, dur = 0.26) {
+        ensureBgmGain();
+        const nowT = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = "sine";
+        osc.frequency.value = midiToFreq(midi);
+        gain.gain.setValueAtTime(0.0001, nowT);
+        gain.gain.exponentialRampToValueAtTime(0.55, nowT + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, nowT + dur);
+        osc.connect(gain);
+        gain.connect(bgmGain);
+        osc.start(nowT);
+        osc.stop(nowT + dur + 0.05);
+      }
+      function startSynthBgm(song) {
+        stopSynthBgm();
+        if (!song) return;
+        ensureAudio();
+        const pattern = song.bgmPattern || [0, 5, 7, 12];
+        const base = (song.baseNote ?? 60) - 12;
+        let idx = 0;
+        const speedFactor = Number($("#speed").value) || 1;
+        const beatMs = 60000 / (song.bpm || 110) / speedFactor;
+        const interval = Math.max(160, beatMs * 2.2);
+        synthBgmTimer = setInterval(() => {
+          const off = pattern[idx % pattern.length];
+          playBgmTone(base + off, 0.32);
+          idx++;
+        }, interval);
+      }
+      function stopAllBgm() {
+        if (bgmStopTimer) {
+          clearTimeout(bgmStopTimer);
+          bgmStopTimer = null;
+        }
+        stopSynthBgm();
+        try {
+          bgm.pause();
+          bgm.currentTime = 0;
+        } catch (e) {}
+      }
+      async function startBgm(song) {
+        stopAllBgm();
+        if (!song) return;
+        const speedVal = Number($("#speed").value) || 1;
+        bgm.volume = Number($("#bgmVol").value);
+        bgm.playbackRate = speedVal;
+        if (song.bgmFile) {
+          bgm.src = `assets/bgm/${song.bgmFile}`;
+          try {
+            bgm.currentTime = 0;
+            await bgm.play();
+            const dur = 30000 / speedVal;
+            bgmStopTimer = setTimeout(() => {
+              try {
+                bgm.pause();
+              } catch (e) {}
+            }, dur + 200);
+            return;
+          } catch (e) {}
+        }
+        startSynthBgm(song);
+      }
+      bgm.addEventListener("error", () => {
+        stopAllBgm();
+        if (game?.song) startSynthBgm(game.song);
+      });
       $("#bgmVol").addEventListener("input", () => {
         bgm.volume = Number($("#bgmVol").value);
+        if (bgmGain) bgmGain.gain.value = Number($("#bgmVol").value);
       });
 
       function midiToFreq(m) {
@@ -3289,6 +3445,7 @@
         endTimer = null,
         autoOffset = 0,
         autoSamples = [];
+      const tileMap = new Map();
       const AUTO_MAX_SAMPLES = 12;
 
       let freeStartTime = null;
@@ -3334,6 +3491,9 @@
           game.beatMsBase = 60000 / game.song.bpm;
           game.beatMs = game.beatMsBase / Number(speed.value);
           bgm.playbackRate = Number(speed.value);
+          if (!bgm.src && game.running && game.mode === "songs") {
+            startSynthBgm(game.song);
+          }
         }
       });
       $("#bgmVol").dispatchEvent(new Event("input"));
@@ -3427,6 +3587,12 @@
           clearTimeout(bgmStopTimer);
           bgmStopTimer = null;
         }
+        stopSynthBgm();
+        try {
+          bgm.pause();
+        } catch (e) {}
+        tileMap.forEach((el) => el.remove());
+        tileMap.clear();
         const mappedSeq = song ? mapSeqForLayout(song.seq) : [];
         game = {
           mode,
@@ -3455,6 +3621,10 @@
         resultEl.classList.remove("show");
         judgeEl.className = "judge";
         for (const lane of lanesEl.children) lane.innerHTML = "";
+        if (tileMap.size) {
+          tileMap.forEach((el) => el.remove());
+          tileMap.clear();
+        }
 
         const isFree = mode === "free";
         $("#songWrap").style.display = isFree ? "none" : "inline-flex";
@@ -3464,13 +3634,13 @@
         if (isFree) playEl.classList.add("free-mode");
         else playEl.classList.remove("free-mode");
 
-        if (song) {
+        if (song?.bgmFile) {
           bgm.src = `assets/bgm/${song.bgmFile}`;
-          bgm.volume = Number($("#bgmVol").value);
-          bgm.playbackRate = Number(speed.value);
         } else {
           bgm.removeAttribute("src");
         }
+        bgm.volume = Number($("#bgmVol").value);
+        bgm.playbackRate = Number(speed.value);
       }
 
       function startGameInternal() {
@@ -3482,18 +3652,7 @@
         $("#btnStart").disabled = true;
 
         if (game.mode === "songs" && game.song) {
-          if (bgm.src) {
-            try {
-              bgm.currentTime = 0;
-              bgm.play().catch(() => {});
-            } catch (e) {}
-            const dur = 30000 / Number(speed.value);
-            bgmStopTimer = setTimeout(() => {
-              try {
-                bgm.pause();
-              } catch (e) {}
-            }, dur + 200);
-          }
+          startBgm(game.song);
           const lengthMs =
             game.seq.length * game.beatMs + CONFIG.WIN.good + 1200;
           endTimer = setTimeout(() => game.running && finish(), lengthMs);
@@ -3523,6 +3682,7 @@
         try {
           bgm.pause();
         } catch (e) {}
+        stopSynthBgm();
       }
 
       function resume() {
@@ -3534,6 +3694,9 @@
         try {
           bgm.play().catch(() => {});
         } catch (e) {}
+        if (game.mode === "songs" && game.song && !bgm.src) {
+          startSynthBgm(game.song);
+        }
         if (game.mode === "songs") loop();
       }
 
@@ -3565,20 +3728,25 @@
 
       function draw(t) {
         if (game.mode !== "songs" || !game.song) return;
-        for (const lane of lanesEl.children) lane.innerHTML = "";
         const baseIdx = currentBeatIndex(t);
-        for (let k = CONFIG.LEAD; k >= 0; k--) {
-          const idx = baseIdx + k;
-          if (idx >= game.seq.length || idx < 0) continue;
+        const nextVisible = new Set();
+        const minIdx = Math.max(0, baseIdx - 1);
+        const maxIdx = Math.min(game.seq.length - 1, baseIdx + CONFIG.LEAD);
+        for (let idx = minIdx; idx <= maxIdx; idx++) {
           const laneIdx = game.seq[idx];
           if (laneIdx < 0) continue;
+          if (game.judged[idx]) {
+            removeTile(idx);
+            continue;
+          }
           const phase = (t - idx * game.beatMs) / game.beatMs;
           const y = yForPhase(phase);
-          if (y >= -CONFIG.TILE_H && y <= CONFIG.HIT_Y + CONFIG.TILE_H) {
-            game.drawn.add(idx);
-            const d = document.createElement("div");
+          if (y < -CONFIG.TILE_H || y > CONFIG.HIT_Y + CONFIG.TILE_H) continue;
+          game.drawn.add(idx);
+          let d = tileMap.get(idx);
+          if (!d) {
+            d = document.createElement("div");
             d.className = "tile";
-            d.style.top = y + "px";
             d.dataset.idx = idx;
             d.dataset.lane = laneIdx;
             d.addEventListener("pointerdown", (e) => {
@@ -3589,7 +3757,24 @@
               `.lane[data-lane="${laneIdx}"]`
             );
             if (laneEl) laneEl.appendChild(d);
+            tileMap.set(idx, d);
           }
+          d.style.top = y + "px";
+          nextVisible.add(idx);
+        }
+        tileMap.forEach((el, idx) => {
+          if (!nextVisible.has(idx)) {
+            el.remove();
+            tileMap.delete(idx);
+          }
+        });
+      }
+
+      function removeTile(idx) {
+        const el = tileMap.get(idx);
+        if (el) {
+          el.remove();
+          tileMap.delete(idx);
         }
       }
 
@@ -3603,6 +3788,7 @@
           const late = t - autoOffset - endTime;
           if (late > CONFIG.WIN.good + 40) {
             game.judged[prev] = true;
+            removeTile(prev);
             addScore("miss");
             showJudge("MISS", "miss");
           }
@@ -3724,6 +3910,7 @@
         }
 
         game.judged[idx] = true;
+        removeTile(idx);
         if (game.judged.every(Boolean)) finish();
       }
 
@@ -3777,21 +3964,21 @@
         if (id === "summer_pop" && accInt >= 82) completeQuest("Q8_summer82");
 
         const chainKey = "mew_chain_acc75";
-        const prevOk = localStorage.getItem(chainKey) === "1";
+        const prevOk = storage.get(chainKey) === "1";
         if (accInt >= 75) {
           if (prevOk) completeQuest("Q9_two_75");
-          localStorage.setItem(chainKey, "1");
+          storage.set(chainKey, "1");
         } else {
-          localStorage.setItem(chainKey, "0");
+          storage.set(chainKey, "0");
         }
 
         const chainKey90 = "mew_chain_acc90";
-        const prev90 = localStorage.getItem(chainKey90) === "1";
+        const prev90 = storage.get(chainKey90) === "1";
         if (accInt >= 90) {
           if (prev90) completeQuest("Q32_two_90");
-          localStorage.setItem(chainKey90, "1");
+          storage.set(chainKey90, "1");
         } else {
-          localStorage.setItem(chainKey90, "0");
+          storage.set(chainKey90, "0");
         }
 
         if (spd >= 1.2 && s >= 9000) completeQuest("Q11_speed12_score");
@@ -3814,19 +4001,19 @@
 
         if (id && id !== "free" && s >= 8000) {
           const key = "mew_multi_8000";
-          const arr = JSON.parse(localStorage.getItem(key) || "[]");
+          const arr = readJSON(key, []);
           if (!arr.includes(id)) {
             arr.push(id);
-            localStorage.setItem(key, JSON.stringify(arr));
+            writeJSON(key, arr);
           }
           if (arr.length >= 5) completeQuest("Q17_five_songs");
         }
         if (id && id !== "free" && s >= 10000) {
           const key = "mew_multi_10000";
-          const arr = JSON.parse(localStorage.getItem(key) || "[]");
+          const arr = readJSON(key, []);
           if (!arr.includes(id)) {
             arr.push(id);
-            localStorage.setItem(key, JSON.stringify(arr));
+            writeJSON(key, arr);
           }
           if (arr.length >= 3) completeQuest("Q35_three_10000");
         }
@@ -3834,18 +4021,18 @@
         if (id && id !== "free") {
           const pk = "mew_songs_played";
           const ak = "mew_songs_acc85";
-          const played = new Set(JSON.parse(localStorage.getItem(pk) || "[]"));
+          const played = new Set(readJSON(pk, []));
           played.add(id);
-          localStorage.setItem(pk, JSON.stringify([...played]));
+          writeJSON(pk, [...played]);
           if (accInt >= 85) {
-            const good = new Set(JSON.parse(localStorage.getItem(ak) || "[]"));
+            const good = new Set(readJSON(ak, []));
             good.add(id);
-            localStorage.setItem(ak, JSON.stringify([...good]));
+            writeJSON(ak, [...good]);
           }
           const playedCount = JSON.parse(
-            localStorage.getItem(pk) || "[]"
+            storage.get(pk) || "[]"
           ).length;
-          const goodCount = JSON.parse(localStorage.getItem(ak) || "[]").length;
+          const goodCount = JSON.parse(storage.get(ak) || "[]").length;
           if (playedCount >= 10 && goodCount >= 3)
             completeQuest("Q18_allround");
         }
@@ -3863,9 +4050,7 @@
       function finish() {
         if (!game) return;
         game.running = false;
-        try {
-          bgm.pause();
-        } catch (e) {}
+        stopAllBgm();
 
         const t = game.counts;
         const total = t.perfect + t.great + t.good + t.miss;
@@ -3875,21 +4060,29 @@
             )
           : 0;
 
-        const store = JSON.parse(
-          localStorage.getItem("pianotiles12_realkeys_v2") || "{}"
-        );
+        const store = readJSON(STORE_KEY, {});
         store.high = store.high || {};
-        const key = "song_" + (game.song?.id || "free");
+        const speedVal = Number($("#speed").value).toFixed(2);
+        const songKey = game.song?.id || "free";
+        const key = `song_${songKey}_${speedVal}`;
         const prev = store.high[key]?.score || 0;
         const bestScore = Math.max(prev, game.score);
         const nowStr = todayStr();
-        store.high[key] = { score: bestScore, acc, date: nowStr };
-        localStorage.setItem("pianotiles12_realkeys_v2", JSON.stringify(store));
+        store.high[key] = {
+          score: bestScore,
+          acc,
+          date: nowStr,
+          speed: speedVal,
+          songId: songKey,
+        };
+        writeJSON(STORE_KEY, store);
 
         $("#rScore").textContent = game.score;
-        $(
-          "#rBest"
-        ).textContent = `${store.high[key].score}（${store.high[key].date}）`;
+        const bestEntry =
+          store.high[key] ||
+          store.high[`song_${songKey}`] || { score: bestScore, date: nowStr };
+        const speedSuffix = bestEntry.speed ? ` @${bestEntry.speed}x` : "";
+        $("#rBest").textContent = `${bestEntry.score}（${bestEntry.date}${speedSuffix}）`;
         $("#rAcc").textContent = acc + "%";
         $("#rCombo").textContent = game.maxCombo;
         $("#rP").textContent = t.perfect;
@@ -3913,6 +4106,7 @@
         resultNoteEl.innerHTML = `<span>喵評：</span>${msg}`;
 
         resultEl.classList.add("show");
+        focusModal(resultEl);
         $("#btnStart").disabled = false;
         $("#btnPause").disabled = true;
         $("#btnRestart").disabled = false;
@@ -3921,12 +4115,61 @@
       }
 
       function refreshBest() {
-        const store = JSON.parse(
-          localStorage.getItem("pianotiles12_realkeys_v2") || "{}"
-        );
-        const key = "song_" + (game?.song?.id || "free");
-        const val = store.high?.[key]?.score || 0;
+        const store = readJSON(STORE_KEY, {});
+        const songKey = game?.song?.id || "free";
+        const speedVal = Number($("#speed").value).toFixed(2);
+        const key = `song_${songKey}_${speedVal}`;
+        const val =
+          store.high?.[key]?.score ||
+          store.high?.[`song_${songKey}`]?.score ||
+          0;
         bestEl.textContent = val;
+      }
+
+      const modalEls = [
+        resultEl,
+        missionsPanelEl,
+        rankPanelEl,
+        judgePanelEl,
+        settingsPanelEl,
+      ];
+      modalEls.forEach((el) => {
+        if (!el) return;
+        el.setAttribute("role", "dialog");
+        el.setAttribute("tabindex", "-1");
+      });
+      function focusModal(el) {
+        try {
+          el?.focus({ preventScroll: true });
+        } catch (e) {}
+      }
+      function closeOpenModal() {
+        if (resultEl.classList.contains("show")) resultEl.classList.remove("show");
+        if (missionsPanelEl.classList.contains("show"))
+          missionsPanelEl.classList.remove("show");
+        if (rankPanelEl.classList.contains("show"))
+          rankPanelEl.classList.remove("show");
+        if (judgePanelEl.classList.contains("show"))
+          judgePanelEl.classList.remove("show");
+        if (settingsPanelEl.classList.contains("show"))
+          settingsPanelEl.classList.remove("show");
+        if (startOverlayEl && startOverlayEl.style.display !== "none") {
+          startOverlayEl.style.display = "none";
+        }
+      }
+      function isModalOpen() {
+        const overlayVisible = startOverlayEl?.style.display !== "none";
+        const blocked =
+          landscapeBlockEl?.classList.contains("show") || false;
+        return (
+          overlayVisible ||
+          blocked ||
+          resultEl.classList.contains("show") ||
+          missionsPanelEl.classList.contains("show") ||
+          rankPanelEl.classList.contains("show") ||
+          judgePanelEl.classList.contains("show") ||
+          settingsPanelEl.classList.contains("show")
+        );
       }
 
       /* 綁定 */
@@ -4019,6 +4262,16 @@
       });
 
       window.addEventListener("keydown", (e) => {
+        const tag = e.target?.tagName?.toLowerCase();
+        if (["input", "select", "textarea"].includes(tag)) return;
+        if (e.key === "Escape") {
+          if (isModalOpen()) {
+            e.preventDefault();
+            closeOpenModal();
+          }
+          return;
+        }
+        if (isModalOpen()) return;
         const k = e.key.toLowerCase();
         if (k in keyMap) {
           ensureAudio();
@@ -4032,6 +4285,7 @@
         renderChapters();
         missionsPanelEl.classList.add("show");
         clearMissionsNew();
+        focusModal(missionsPanelEl);
       });
       $("#btnCloseMissions").addEventListener("click", () => {
         missionsPanelEl.classList.remove("show");
@@ -4044,6 +4298,7 @@
       $("#btnRank").addEventListener("click", () => {
         renderLeaderboard();
         rankPanelEl.classList.add("show");
+        focusModal(rankPanelEl);
       });
       $("#btnCloseRank").addEventListener("click", () => {
         rankPanelEl.classList.remove("show");
@@ -4054,6 +4309,7 @@
 
       $("#btnJudgeInfo").addEventListener("click", () => {
         judgePanelEl.classList.add("show");
+        focusModal(judgePanelEl);
       });
       $("#btnCloseJudge").addEventListener("click", () => {
         judgePanelEl.classList.remove("show");
@@ -4064,6 +4320,7 @@
 
       $("#btnSettings").addEventListener("click", () => {
         settingsPanelEl.classList.add("show");
+        focusModal(settingsPanelEl);
       });
       $("#btnCloseSettings").addEventListener("click", () => {
         settingsPanelEl.classList.remove("show");
