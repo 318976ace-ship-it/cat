@@ -125,11 +125,19 @@
         margin: 0;
         padding: 0;
       }
+      html,
+      body {
+        height: 100%;
+      }
       body {
         font-family: "Noto Sans TC", system-ui, -apple-system, Segoe UI, Roboto,
           sans-serif;
         background: var(--bg);
         color: var(--text);
+        min-height: 100dvh;
+        overflow-x: hidden;
+        overscroll-behavior: none;
+        touch-action: manipulation;
       }
       .shell {
         max-width: 1200px;
@@ -420,6 +428,8 @@
           0 18px 42px rgba(19, 35, 92, 0.35);
         overflow: hidden;
         transition: background 0.35s, filter 0.35s;
+        touch-action: none;
+        overscroll-behavior: contain;
       }
       .play.combo-flash {
         background: radial-gradient(
@@ -860,6 +870,7 @@
         height: 160px;
         margin-top: 12px;
         user-select: none;
+        touch-action: none;
       }
       .freepiano .whites {
         position: absolute;
@@ -1559,7 +1570,7 @@
             aria-pressed="false"
             aria-label="收合其他控制"
           >
-            收合控制
+            收合功能
           </button>
           <button
             id="btnToggleHints"
@@ -1936,10 +1947,10 @@
         document.body.classList.toggle("compact-ui", on);
         if (btnToggleUI) {
           btnToggleUI.setAttribute("aria-pressed", on ? "true" : "false");
-          btnToggleUI.textContent = on ? "展開控制" : "收合控制";
+          btnToggleUI.textContent = on ? "展開功能" : "收合功能";
           btnToggleUI.setAttribute(
             "aria-label",
-            on ? "展開其他控制" : "收合其他控制"
+            on ? "展開其他功能" : "收合其他功能"
           );
         }
       }
