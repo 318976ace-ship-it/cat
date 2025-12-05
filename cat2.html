@@ -1,0 +1,4500 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>
+        鋼琴小遊戲 · Mew Atelier（真實鋼琴黑白層次 · 12 鍵 · 30 首 30s BGM）
+    </title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;800;900&display=swap"
+        rel="stylesheet" />
+    <style>
+        :root {
+            --bg: linear-gradient(180deg, #ffeef9 0%, #fff6fb 50%, #ffe9f2 100%);
+            --panel: #fff5f7;
+            --text: #2d4057;
+            --muted: #9c7a78;
+            --brand: #f9b5d0;
+            --brand-hover: #f59fc4;
+            --accent: #ffd7a8;
+            --miss: #ff8fa3;
+            --border: #f4d9e6;
+            --hit: #ffd5a8;
+            --tile: #e5b7c7;
+            --whiteKeyCute: #fff6f9;
+            --blackKeyCute: #46364b;
+            --radius: 16px;
+            --radius-lg: 20px;
+            --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
+            --play-height: 560px;
+            --lane-count: 12;
+            --tile-size: 120px;
+            --hitline-bottom: 110px;
+            --app-height: 100vh;
+        }
+
+        /* 主題：薄荷牛奶 */
+        body[data-theme="mint"] {
+            --bg: #f6fff9;
+            --panel: #ecfff5;
+            --text: #355749;
+            --muted: #6f8e7d;
+            --brand: #7ad9b3;
+            --brand-hover: #5ecba0;
+            --accent: #5ac8d8;
+            --miss: #ff99b2;
+            --border: #cde9dc;
+            --hit: #bff3d8;
+            --tile: #437a64;
+            --whiteKeyCute: #ffffff;
+            --blackKeyCute: #26413a;
+        }
+
+        /* 主題：薰衣紫霧 */
+        body[data-theme="lavender"] {
+            --bg: #fbf7ff;
+            --panel: #f4ecff;
+            --text: #4a4263;
+            --muted: #8a82a8;
+            --brand: #c7a5ff;
+            --brand-hover: #b18dff;
+            --accent: #ffb6da;
+            --miss: #ff8fa3;
+            --border: #ddd2ff;
+            --hit: #f2ddff;
+            --tile: #5d4a88;
+            --whiteKeyCute: #ffffff;
+            --blackKeyCute: #3d3254;
+        }
+
+        /* 主題：軟糖天空 */
+        body[data-theme="sky"] {
+            --bg: #f4fbff;
+            --panel: #e8f5ff;
+            --text: #26435a;
+            --muted: #6a8699;
+            --brand: #7ecbff;
+            --brand-hover: #5fb6f5;
+            --accent: #ffcf8a;
+            --miss: #ff9aa2;
+            --border: #c7dff0;
+            --hit: #d4f0ff;
+            --tile: #386489;
+            --whiteKeyCute: #ffffff;
+            --blackKeyCute: #24384a;
+        }
+
+        /* 主題：暖粉可可（預設暖橙改成粉色系） */
+        body[data-theme="warm"] {
+            --bg: linear-gradient(180deg, #ffeef9 0%, #fff6fb 50%, #ffe9f2 100%);
+            --panel: #fff5f7;
+            --text: #2d4057;
+            --muted: #9c7a78;
+            --brand: #f9b5d0;
+            --brand-hover: #f59fc4;
+            --accent: #ffd7a8;
+            --miss: #ff8fa3;
+            --border: #f4d9e6;
+            --hit: #ffd5a8;
+            --tile: #e5b7c7;
+            --whiteKeyCute: #fff6f9;
+            --blackKeyCute: #46364b;
+        }
+
+        /* 主題：夢幻粉糖 */
+        body[data-theme="pink"] {
+            --bg: linear-gradient(180deg, #ffe3f2 0%, #ffd8f0 45%, #ffc6e6 100%);
+            --panel: #fff0f6;
+            --text: #3a2a3a;
+            --muted: #9a6c86;
+            --brand: #ff7ac7;
+            --brand-hover: #ff5cb7;
+            --accent: #ffd27f;
+            --miss: #ff8fb3;
+            --border: #f5c6de;
+            --hit: #ffd9a8;
+            --tile: #f2a6d8;
+            --whiteKeyCute: #fff7fb;
+            --blackKeyCute: #53304f;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            height: 100%;
+        }
+
+        body {
+            font-family: "Noto Sans TC", system-ui, -apple-system, Segoe UI, Roboto,
+                sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100dvh;
+            overflow-x: hidden;
+            overscroll-behavior: none;
+            touch-action: manipulation;
+        }
+
+        .shell {
+            max-width: 1200px;
+            margin: 0 auto;
+            min-height: 100dvh;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        header.nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            gap: 12px;
+        }
+
+        header .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 900;
+        }
+
+        .brand-logo {
+            width: 26px;
+            height: 26px;
+            border-radius: 999px;
+            background: linear-gradient(145deg, #ffb980, #ffe3bd);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: #6b4d3e;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            padding: 18px;
+        }
+
+        .row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .row+.row {
+            margin-top: 10px;
+        }
+
+        button {
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.75);
+            border-radius: 999px;
+            padding: 12px 18px;
+            font-weight: 800;
+            background: linear-gradient(145deg, #fff9fb, #ffe7f1);
+            color: #c65c8a;
+            transition: 0.2s;
+            box-shadow: 0 6px 18px rgba(232, 164, 180, 0.35),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            font-size: 13px;
+            position: relative;
+        }
+
+        button:hover {
+            background: linear-gradient(145deg, #fff4f8, #ffdfe9);
+            transform: translateY(-1px);
+            box-shadow: 0 10px 24px rgba(232, 164, 180, 0.38),
+                inset 0 1px 0 rgba(255, 255, 255, 1);
+        }
+
+        button:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.7), 0 0 0 4px #f9c8de,
+                0 8px 20px rgba(232, 164, 180, 0.4);
+        }
+
+        button.secondary {
+            background: rgba(255, 255, 255, 0.5);
+            color: var(--text);
+            border-color: rgba(255, 255, 255, 0.7);
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+            backdrop-filter: blur(8px);
+        }
+
+        button.small {
+            padding: 5px 10px;
+            font-size: 11px;
+            border-radius: 16px;
+            box-shadow: none;
+        }
+
+        button.icon-button {
+            padding: 6px 9px;
+            border-radius: 999px;
+            font-size: 13px;
+            min-width: 32px;
+            min-height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-primary-large {
+            padding: 10px 22px;
+            border-radius: 999px;
+            font-size: 14px;
+            letter-spacing: 0.3px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary-large span {
+            font-size: 16px;
+        }
+
+        button:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .field {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: #fff3e3;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-size: 12px;
+        }
+
+        select,
+        input[type="range"] {
+            accent-color: var(--brand);
+        }
+
+        .mini {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        /* HUD 重構 */
+        .hud {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .hud-main {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .hud-card {
+            min-width: 110px;
+            padding: 8px 10px;
+            border-radius: 14px;
+            background: #fffaf3;
+            border: 1px solid #f2e0c9;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+            font-size: 12px;
+        }
+
+        .hud-card-title {
+            font-size: 10px;
+            color: var(--muted);
+            margin-bottom: 2px;
+        }
+
+        .hud-card-value {
+            font-weight: 900;
+            font-size: 16px;
+        }
+
+        .hud-card-sub {
+            font-size: 10px;
+            color: var(--muted);
+            margin-top: 1px;
+        }
+
+        .hud-score-card {
+            background: linear-gradient(135deg, #ffe3bd, #fff5e2);
+            border-color: #f7c48f;
+        }
+
+        .hud-best {
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px dashed #e2c7a3;
+            color: #8a6a54;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .hud-best-label {
+            font-weight: 700;
+        }
+
+        .hud-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        /* 簡潔模式：收合控制，讓鋼琴滿版 */
+        body.compact-ui .panel {
+            padding: 12px 14px;
+        }
+
+        body.compact-ui .panel .row:nth-child(n + 2),
+        body.compact-ui .hud {
+            display: none;
+        }
+
+        body.compact-ui .play-wrap {
+            margin-top: 4px;
+        }
+
+        /* flash 給 score 用，沿用原動畫 */
+        .hud-card.flash,
+        .pill.flash {
+            animation: flash 0.3s;
+        }
+
+        .pill {
+            background: var(--brand);
+            color: #fff;
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-weight: 900;
+            letter-spacing: 0.2px;
+            font-size: 12px;
+        }
+
+        .pill.flash {
+            animation: flash 0.3s;
+        }
+
+        @keyframes flash {
+            0% {
+                background: var(--brand);
+            }
+
+            50% {
+                background: var(--accent);
+            }
+
+            100% {
+                background: var(--brand);
+            }
+        }
+
+        /* Play wrapper */
+        .play-wrap {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 84px;
+            align-items: stretch;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .play {
+            position: relative;
+            height: var(--play-height);
+            border-radius: 24px;
+            background: radial-gradient(circle at 50% 12%,
+                    rgba(255, 255, 255, 0.3) 0 8%,
+                    transparent 22%),
+                radial-gradient(circle at 18% 20%,
+                    rgba(255, 255, 255, 0.22) 0 6%,
+                    transparent 20%),
+                radial-gradient(circle at 78% 24%,
+                    rgba(255, 255, 255, 0.2) 0 6%,
+                    transparent 20%),
+                linear-gradient(180deg,
+                    #324eb5 0%,
+                    #253c94 38%,
+                    #1b2f78 70%,
+                    #13235c 100%);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2),
+                0 18px 42px rgba(19, 35, 92, 0.35);
+            overflow: hidden;
+            transition: background 0.35s, filter 0.35s;
+            touch-action: none;
+            overscroll-behavior: contain;
+        }
+
+        .play.combo-flash {
+            background: radial-gradient(circle at center,
+                    rgba(255, 220, 140, 0.35),
+                    rgba(38, 57, 140, 0.5)),
+                linear-gradient(180deg,
+                    #324eb5 0%,
+                    #253c94 38%,
+                    #1b2f78 70%,
+                    #13235c 100%);
+        }
+
+        .play::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: radial-gradient(circle at 50% 78%,
+                    rgba(18, 26, 70, 0.9) 0 32%,
+                    transparent 45%),
+                radial-gradient(circle at 80% 18%,
+                    rgba(255, 194, 144, 0.4) 0 10%,
+                    transparent 22%),
+                radial-gradient(circle at 62% 16%,
+                    rgba(255, 214, 240, 0.35) 0 9%,
+                    transparent 24%),
+                radial-gradient(circle at 42% 14%,
+                    rgba(180, 210, 255, 0.35) 0 9%,
+                    transparent 24%),
+                radial-gradient(circle at 50% 78%,
+                    rgba(255, 220, 180, 0.4) 0 18%,
+                    transparent 50%),
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 520 340'%3E%3Cdefs%3E%3ClinearGradient id='cast' x1='0' x2='0' y1='0' y2='1'%3E%3Cstop offset='0' stop-color='%2339e0ff'/%3E%3Cstop offset='1' stop-color='%23ff6be8'/%3E%3C/linearGradient%3E%3ClinearGradient id='roof' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23ffde7a'/%3E%3Cstop offset='1' stop-color='%23ff8a3d'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg fill='url(%23cast)' stroke='%23fff7ff' stroke-width='4' stroke-linejoin='round'%3E%3Crect x='236' y='148' width='68' height='122' rx='9'/%3E%3Crect x='254' y='106' width='32' height='46'/%3E%3Cpath d='M270 56l22 50h-44z' fill='url(%23roof)' stroke='%23fff7ff' stroke-width='3'/%3E%3Crect x='156' y='186' width='68' height='86' rx='7'/%3E%3Crect x='304' y='186' width='68' height='86' rx='7'/%3E%3Cpath d='M156 186l34-34 34 34H156z'/%3E%3Cpath d='M338 152l34 34h-68z'/%3E%3Crect x='238' y='200' width='64' height='76' rx='6' fill='%23fff9ff'/%3E%3C/g%3E%3Cg fill='url(%23roof)' stroke='%23ffd36f' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M270 40v34M270 40l-16 20M270 40l16 20'/%3E%3Cpath d='M194 128v30M194 128l-12 18M194 128l12 18'/%3E%3Cpath d='M348 128v30M348 128l-12 18M348 128l12 18'/%3E%3C/g%3E%3Cg stroke='%23ffe6c8' stroke-width='4' stroke-linecap='round' fill='none' opacity='.9'%3E%3Cpath d='M270 46c0 0-9 19-22 26M270 46c0 0 9 19 22 26'/%3E%3Cpath d='M194 138c0 0-11 15-24 20M194 138c0 0 12 14 24 20'/%3E%3Cpath d='M348 138c0 0-12 14-24 20M348 138c0 0 11 15 24 20'/%3E%3C/g%3E%3C/svg%3E") no-repeat center 80% / 420px 260px,
+                radial-gradient(circle at 8% 12%,
+                    rgba(255, 215, 230, 0.4) 0 10%,
+                    transparent 24%),
+                radial-gradient(circle at 92% 18%,
+                    rgba(255, 233, 205, 0.36) 0 9%,
+                    transparent 22%),
+                radial-gradient(circle at 18% 78%,
+                    rgba(210, 234, 255, 0.32) 0 12%,
+                    transparent 26%),
+                radial-gradient(circle at 82% 82%,
+                    rgba(255, 216, 200, 0.3) 0 12%,
+                    transparent 24%),
+                radial-gradient(circle at 68% 24%,
+                    rgba(255, 196, 128, 0.4) 0 20%,
+                    transparent 42%),
+                radial-gradient(circle at 56% 20%,
+                    rgba(255, 236, 180, 0.35) 0 18%,
+                    transparent 40%),
+                radial-gradient(circle at 42% 22%,
+                    rgba(200, 220, 255, 0.32) 0 16%,
+                    transparent 38%),
+                radial-gradient(circle at 34% 18%,
+                    rgba(255, 186, 240, 0.28) 0 14%,
+                    transparent 36%);
+            z-index: 0;
+        }
+
+        .play::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: linear-gradient(180deg,
+                    rgba(255, 255, 255, 0.75) 0 42px,
+                    transparent 42px) 6% 0/2px 140px no-repeat,
+                linear-gradient(180deg,
+                    rgba(255, 255, 255, 0.65) 0 46px,
+                    transparent 46px) 16% 0/2px 150px no-repeat,
+                linear-gradient(180deg,
+                    rgba(255, 255, 255, 0.7) 0 58px,
+                    transparent 58px) 28% 0/2px 158px no-repeat,
+                linear-gradient(180deg,
+                    rgba(255, 255, 255, 0.68) 0 52px,
+                    transparent 52px) 40% 0/2px 146px no-repeat,
+                linear-gradient(180deg,
+                    rgba(255, 255, 255, 0.72) 0 60px,
+                    transparent 60px) 52% 0/2px 160px no-repeat,
+                linear-gradient(180deg,
+                    rgba(255, 255, 255, 0.65) 0 50px,
+                    transparent 50px) 64% 0/2px 150px no-repeat,
+                linear-gradient(180deg,
+                    rgba(255, 255, 255, 0.7) 0 54px,
+                    transparent 54px) 76% 0/2px 152px no-repeat,
+                linear-gradient(180deg,
+                    rgba(255, 255, 255, 0.72) 0 62px,
+                    transparent 62px) 88% 0/2px 164px no-repeat,
+                radial-gradient(circle at 6% 6%,
+                    rgba(255, 255, 255, 0.95) 0 6px,
+                    transparent 10px),
+                radial-gradient(circle at 14% 10%,
+                    rgba(255, 255, 255, 0.9) 0 7px,
+                    transparent 12px),
+                radial-gradient(circle at 26% 8%,
+                    rgba(255, 255, 255, 0.9) 0 6px,
+                    transparent 12px),
+                radial-gradient(circle at 36% 12%,
+                    rgba(255, 255, 255, 0.92) 0 8px,
+                    transparent 13px),
+                radial-gradient(circle at 48% 9%,
+                    rgba(255, 255, 255, 0.9) 0 7px,
+                    transparent 12px),
+                radial-gradient(circle at 60% 7%,
+                    rgba(255, 255, 255, 0.88) 0 6px,
+                    transparent 12px),
+                radial-gradient(circle at 72% 10%,
+                    rgba(255, 255, 255, 0.9) 0 8px,
+                    transparent 13px),
+                radial-gradient(circle at 84% 9%,
+                    rgba(255, 255, 255, 0.92) 0 7px,
+                    transparent 12px),
+                radial-gradient(circle at 92% 6%,
+                    rgba(255, 255, 255, 0.88) 0 6px,
+                    transparent 11px);
+            z-index: 1;
+            mix-blend-mode: screen;
+        }
+
+        .play.free-mode {
+            filter: saturate(0.9) brightness(1.02);
+        }
+
+        .hitline {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: var(--hitline-bottom);
+            height: 5px;
+            background: var(--hit);
+            box-shadow: 0 0 12px rgba(255, 185, 128, 0.7);
+            border-top: 1px solid rgba(255, 255, 255, 0.9);
+        }
+
+        .hitline::after {
+            content: "Perfect Line";
+            position: absolute;
+            right: 10px;
+            top: -18px;
+            font-size: 10px;
+            color: var(--muted);
+            background: rgba(255, 255, 255, 0.92);
+            padding: 2px 6px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 185, 128, 0.6);
+        }
+
+        .lanes {
+            position: absolute;
+            inset: 0;
+        }
+
+        .lane {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            border-left: 1px dotted rgba(255, 180, 200, 0.35);
+        }
+
+        .lane:first-child {
+            border-left: 0;
+        }
+
+        /* 方塊：半透明玻璃 + 小貓抓 */
+        .tile {
+            position: absolute;
+            left: 8px;
+            right: 8px;
+            height: var(--tile-size);
+            cursor: pointer;
+            border-radius: 22px;
+            background: linear-gradient(145deg, #fffdfc, #ffeede);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+            transition: top 0.12s linear, transform 0.1s, box-shadow 0.1s;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            overflow: visible;
+        }
+
+        .tile::before {
+            content: "😺";
+            position: absolute;
+            top: -18px;
+            left: 8px;
+            font-size: 18px;
+            transform: rotate(-6deg);
+            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .tile::after {
+            content: "";
+            position: absolute;
+            inset: 4px 6px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.75);
+            box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.8);
+        }
+
+        .tile:active {
+            transform: translateY(2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+        }
+
+        .judge {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 180px;
+            font-size: 24px;
+            font-weight: 900;
+            color: #2f9e44;
+            opacity: 0;
+            transition: opacity 0.2s, transform 0.2s;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 6px 12px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+            pointer-events: none;
+        }
+
+        .judge.show {
+            opacity: 1;
+            transform: translate(-50%, -8px);
+        }
+
+        .judge.miss {
+            color: #fff;
+            background: var(--miss);
+        }
+
+        .judge.perfect {
+            color: #17642d;
+            background: rgba(191, 243, 216, 0.95);
+        }
+
+        .judge.great {
+            color: #825306;
+            background: rgba(255, 218, 141, 0.96);
+        }
+
+        .judge.good {
+            color: #1d5b7a;
+            background: rgba(196, 231, 255, 0.96);
+        }
+
+        .combo-label {
+            position: absolute;
+            left: 50%;
+            top: 18%;
+            transform: translateX(-50%);
+            padding: 6px 14px;
+            border-radius: 999px;
+            background: rgba(255, 185, 128, 0.94);
+            color: #5a3a24;
+            font-weight: 900;
+            font-size: 14px;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .combo-label.show {
+            animation: combo-pop 0.6s ease-out;
+        }
+
+        @keyframes combo-pop {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -6px) scale(0.9);
+            }
+
+            20% {
+                opacity: 1;
+                transform: translate(-50%, 0) scale(1.05);
+            }
+
+            80% {
+                opacity: 1;
+                transform: translate(-50%, 0) scale(1);
+            }
+
+            100% {
+                opacity: 0;
+                transform: translate(-50%, 0) scale(0.9);
+            }
+        }
+
+        .countdown {
+            position: absolute;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 25;
+            font-size: 60px;
+            font-weight: 900;
+            color: #ff9e6f;
+            text-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            pointer-events: none;
+        }
+
+        .countdown.show {
+            display: flex;
+            animation: countdown-pop 0.35s ease-out;
+        }
+
+        @keyframes countdown-pop {
+            from {
+                opacity: 0;
+                transform: scale(0.7);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* 自由彈奏提示 */
+        .free-hint {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 13px;
+            color: var(--muted);
+            background: rgba(255, 255, 255, 0.9);
+            padding: 6px 10px;
+            border-radius: 999px;
+            border: 1px dashed rgba(242, 224, 201, 0.9);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .play.free-mode .free-hint {
+            opacity: 1;
+        }
+
+        .result {
+            position: fixed;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.88);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
+
+        .result.show {
+            display: flex;
+        }
+
+        .card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            max-width: 720px;
+            width: 96%;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .stat {
+            background: #fff3e3;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 10px;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        .result-note {
+            margin-top: 8px;
+            font-size: 11px;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        .result-note span {
+            font-weight: 800;
+            color: #ff9e6f;
+        }
+
+        .freepiano {
+            position: relative;
+            height: 160px;
+            margin-top: 12px;
+            user-select: none;
+            touch-action: none;
+        }
+
+        .freepiano .whites {
+            position: absolute;
+            inset: 0;
+            display: flex;
+        }
+
+        .freepiano .wkey {
+            flex: 1;
+            margin: 0 2px;
+            background: linear-gradient(#fff, #fff8f4);
+            border: 1px solid #f2e6d8;
+            border-bottom: 6px solid #e6d8c9;
+            border-radius: 10px;
+            box-shadow: inset 0 6px 14px rgba(0, 0, 0, 0.08);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding-bottom: 8px;
+            font-weight: 800;
+            color: #5a4a3e;
+            background-color: var(--whiteKeyCute);
+            transition: 0.06s;
+            font-size: 11px;
+        }
+
+        .freepiano .wkey.active {
+            transform: translateY(2px);
+            filter: brightness(0.98);
+        }
+
+        .freepiano .blacks {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 62%;
+            pointer-events: none;
+        }
+
+        .freepiano .bkey {
+            position: absolute;
+            width: 7.8%;
+            height: 100%;
+            background: linear-gradient(#4c3d54, #362b3b);
+            border: 1px solid #1e1a20;
+            border-bottom: 6px solid #221b22;
+            border-radius: 8px;
+            box-shadow: 0 10px 18px rgba(0, 0, 0, 0.22);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding-bottom: 6px;
+            color: #eee;
+            font-weight: 900;
+            pointer-events: auto;
+            transition: 0.06s;
+            background-color: var(--blackKeyCute);
+            font-size: 10px;
+        }
+
+        .hint-toggle {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 6px;
+            padding: 10px 12px;
+        }
+
+        .hint-toggle .hint-toggle-text {
+            font-weight: 800;
+        }
+
+        .hint-toggle .hint-toggle-sub {
+            font-size: 10px;
+            color: var(--muted);
+            font-weight: 700;
+            letter-spacing: 0.2px;
+        }
+
+        .freepiano .bkey.active {
+            transform: translateY(2px);
+            filter: brightness(0.98);
+        }
+
+        .missions-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.18);
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 40;
+        }
+
+        .missions-backdrop.show {
+            display: flex;
+        }
+
+        .missions-card {
+            width: min(1020px, 96vw);
+            max-height: 72vh;
+            background: #fffdf8;
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.16);
+            padding: 14px 16px 16px;
+            overflow-y: auto;
+        }
+
+        .missions-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .missions-header h3 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 900;
+        }
+
+        .missions-sub {
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        .missions-progress {
+            margin: 4px 0 6px;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 6px;
+            font-size: 10px;
+        }
+
+        .chapter {
+            padding: 4px 6px;
+            border-radius: 10px;
+            background: #fff7eb;
+            border: 1px solid #f2e0c9;
+        }
+
+        .chapter-title {
+            font-weight: 800;
+            margin-bottom: 2px;
+        }
+
+        .chapter-bar-wrap {
+            width: 100%;
+            height: 6px;
+            background: #f4e5cf;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .chapter-bar {
+            height: 100%;
+            background: #ffb980;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .chapter-rate {
+            margin-top: 1px;
+            color: var(--muted);
+        }
+
+        .missions-list {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 6px;
+            margin-top: 4px;
+        }
+
+        .mission-item {
+            padding: 7px 8px;
+            border-radius: 12px;
+            border: 1px solid #f2e0c9;
+            background: #fffaf3;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            font-size: 11px;
+        }
+
+        .mission-title {
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .mission-desc {
+            color: var(--muted);
+            line-height: 1.4;
+        }
+
+        .mission-tag {
+            font-size: 10px;
+            padding: 1px 6px;
+            border-radius: 999px;
+            background: #ffe3bd;
+            color: #7a4d22;
+        }
+
+        .mission-done {
+            font-size: 10px;
+            color: #2f9e44;
+            font-weight: 700;
+        }
+
+        .toast {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            padding: 10px 14px;
+            background: #fff8ec;
+            border-radius: 14px;
+            border: 1px solid #ffb980;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
+            font-size: 12px;
+            color: #7a4d22;
+            z-index: 80;
+            font-weight: 800;
+            display: none;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toast.show {
+            display: flex;
+            animation: toast-pop 0.28s ease-out;
+        }
+
+        .toast-close {
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 12px;
+            padding: 0 4px;
+            color: #c08a4a;
+            border-radius: 8px;
+        }
+
+        .toast-close:hover {
+            background: rgba(255, 185, 128, 0.18);
+        }
+
+        @keyframes toast-pop {
+            from {
+                opacity: 0;
+                transform: translateY(-6px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .start-overlay {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at top, #fff3e3, #ffefd9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 90;
+        }
+
+        .start-card {
+            width: min(420px, 92vw);
+            padding: 20px 18px 18px;
+            border-radius: 20px;
+            background: #ffffffee;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.16);
+            text-align: center;
+        }
+
+        .start-logo {
+            width: 52px;
+            height: 52px;
+            margin: 0 auto 8px;
+            border-radius: 999px;
+            background: linear-gradient(145deg, #ffb980, #ffe3bd);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            color: #6b4d3e;
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+        }
+
+        .start-title {
+            font-weight: 900;
+            font-size: 18px;
+            margin-bottom: 4px;
+            color: #6b4d3e;
+        }
+
+        .start-sub {
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 10px;
+        }
+
+        .start-list {
+            font-size: 11px;
+            color: #8a6a54;
+            text-align: left;
+            margin: 0 auto 12px;
+            max-width: 280px;
+            line-height: 1.5;
+        }
+
+        .start-list li {
+            margin-left: 16px;
+        }
+
+        .start-actions {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .start-btn-main {
+            padding: 8px 16px;
+            border-radius: 20px;
+        }
+
+        .start-btn-secondary {
+            padding: 8px 12px;
+            border-radius: 18px;
+            font-size: 11px;
+        }
+
+        .start-hint {
+            margin-top: 8px;
+            font-size: 11px;
+            color: #b07a4a;
+        }
+
+        .rank-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.18);
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 45;
+        }
+
+        .rank-backdrop.show {
+            display: flex;
+        }
+
+        .rank-card {
+            width: min(520px, 96vw);
+            max-height: 64vh;
+            background: #fffdf8;
+            border-radius: 18px 18px 0 0;
+            box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.18);
+            padding: 12px 14px 14px;
+            overflow-y: auto;
+        }
+
+        .rank-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+
+        .rank-header h3 {
+            margin: 0;
+            font-size: 15px;
+            font-weight: 900;
+        }
+
+        .rank-sub {
+            font-size: 10px;
+            color: var(--muted);
+        }
+
+        .rank-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 4px;
+            font-size: 11px;
+        }
+
+        .rank-table th,
+        .rank-table td {
+            padding: 4px 6px;
+            border-bottom: 1px solid #f2e0c9;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        .rank-table th {
+            font-weight: 800;
+            color: #8a6a54;
+            background: #fff7eb;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        .rank-table td.song {
+            max-width: 130px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .rank-empty {
+            font-size: 10px;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+
+        .cat-column {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 6px;
+        }
+
+        .cat-sticker {
+            background: #fffaf4;
+            border-radius: 16px;
+            padding: 6px 6px 5px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+            border: 1px solid #f2e0c9;
+            font-size: 10px;
+            color: #8a6a54;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            align-items: flex-start;
+        }
+
+        .cat-sticker .cat-emoji {
+            font-size: 16px;
+        }
+
+        .cat-sticker strong {
+            font-size: 10px;
+        }
+
+        .song-info {
+            display: inline-flex;
+            flex-direction: column;
+            gap: 2px;
+            padding: 6px 10px;
+            margin-left: 4px;
+            background: #fff8ee;
+            border-radius: 12px;
+            border: 1px solid #f2e0c9;
+            font-size: 10px;
+            color: #8a6a54;
+        }
+
+        .song-info-title {
+            font-weight: 800;
+            font-size: 11px;
+            color: #6b4d3e;
+        }
+
+        .song-info-tags span {
+            display: inline-block;
+            padding: 1px 6px;
+            border-radius: 999px;
+            background: #ffe3bd;
+            margin-right: 3px;
+            margin-top: 2px;
+        }
+
+        .judge-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.22);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 60;
+        }
+
+        .judge-backdrop.show {
+            display: flex;
+        }
+
+        .judge-card {
+            background: #fffdf8;
+            border-radius: 16px;
+            padding: 14px 14px 10px;
+            box-shadow: var(--shadow);
+            max-width: 280px;
+            font-size: 11px;
+        }
+
+        .judge-card h3 {
+            margin: 0 0 6px;
+            font-size: 13px;
+            font-weight: 900;
+        }
+
+        .judge-list div {
+            margin-bottom: 2px;
+        }
+
+        /* 設定面板 */
+        .settings-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.18);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 55;
+        }
+
+        .settings-backdrop.show {
+            display: flex;
+        }
+
+        .settings-card {
+            width: min(360px, 92vw);
+            background: #fffdf8;
+            border-radius: 18px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+            padding: 14px 16px 14px;
+            font-size: 12px;
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .settings-group {
+            margin-bottom: 8px;
+        }
+
+        .settings-label {
+            font-size: 11px;
+            font-weight: 800;
+            color: #8a6a54;
+            margin-bottom: 4px;
+        }
+
+        .settings-slider-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* 任務/排行榜按鈕 badge */
+        .badge-btn {
+            position: relative;
+            padding-left: 18px;
+        }
+
+        .badge-dot {
+            position: absolute;
+            left: 6px;
+            top: 6px;
+            width: 7px;
+            height: 7px;
+            border-radius: 999px;
+            background: #ff5b6b;
+            box-shadow: 0 0 0 3px rgba(255, 91, 107, 0.25);
+            opacity: 0;
+            transform: scale(0.5);
+            transition: 0.18s;
+        }
+
+        #btnMissions.has-new .badge-dot {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        @media (max-width: 768px) {
+            :root {
+                --tile-size: clamp(90px,
+                        calc(((100vw - 48px) / var(--lane-count, 8)) - 4px),
+                        140px);
+                --hitline-bottom: 70px;
+            }
+
+            .play-wrap {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            body.hints-hidden {
+                --play-height: calc(82dvh - 40px);
+            }
+
+            .cat-column {
+                position: absolute;
+                right: 6px;
+                top: 8px;
+                width: auto;
+                flex-direction: column;
+                gap: 4px;
+                pointer-events: none;
+            }
+
+            .cat-sticker {
+                padding: 4px 6px;
+                font-size: 9px;
+                opacity: 0.9;
+            }
+        }
+
+        @media (max-width: 768px) {
+            :root {
+                --play-height: calc(88dvh - 40px);
+            }
+
+            .tile {
+                height: 100px;
+            }
+
+            .hitline {
+                bottom: 60px;
+            }
+
+            .grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .missions-list {
+                grid-template-columns: repeat(1, minmax(0, 1fr));
+            }
+
+            .missions-progress {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        body.hints-hidden .cat-column {
+            display: none;
+        }
+
+        body.hints-hidden .play-wrap {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+        @media (orientation: landscape) and (max-width: 1024px) {
+            :root {
+                --tile-size: clamp(96px,
+                        calc(((100vw - 120px) / var(--lane-count, 8)) + 4px),
+                        150px);
+                --hitline-bottom: 50px;
+            }
+
+            :root {
+                --play-height: clamp(420px, 90dvh, 620px);
+            }
+
+            .shell {
+                padding: 14px 16px 12px;
+            }
+
+            header.nav {
+                flex-wrap: wrap;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .nav-right {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .play-wrap {
+                grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+                align-items: start;
+                gap: 8px;
+            }
+
+            body.hints-hidden .play-wrap {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            .cat-column {
+                position: static;
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .cat-sticker {
+                flex: 1 1 130px;
+            }
+
+            .hud {
+                gap: 6px;
+            }
+
+            .hud-main {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .hud-card {
+                flex: 1 1 120px;
+                min-width: 0;
+            }
+
+            .tile {
+                height: var(--tile-size);
+            }
+
+            .hitline {
+                bottom: var(--hitline-bottom);
+            }
+        }
+
+        /* 全螢幕滿版：減少邊距、讓 play 占滿可用高度 */
+        body.fullscreen-active {
+            padding: 0;
+            margin: 0;
+        }
+
+        body.fullscreen-active .shell {
+            max-width: 100%;
+            width: 100%;
+            padding: 8px;
+            min-height: var(--app-height, 100vh);
+        }
+
+        body.fullscreen-active header.nav {
+            border-radius: 16px;
+        }
+
+        body.fullscreen-active .panel {
+            border-radius: 16px;
+            padding: 12px;
+        }
+
+        body.fullscreen-active .play-wrap {
+            height: calc(var(--app-height, 100vh) - 160px);
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+        body.fullscreen-active .play {
+            height: 100%;
+            border-radius: 20px;
+        }
+
+        body.fullscreen-active .cat-column {
+            position: absolute;
+            right: 8px;
+            top: 8px;
+        }
+
+        .landscape-block {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 200;
+            padding: 16px;
+        }
+
+        .landscape-block.show {
+            display: flex;
+        }
+
+        .landscape-block-card {
+            width: min(360px, 90vw);
+            background: #fffdf8;
+            border-radius: 18px;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+            padding: 16px 18px;
+            text-align: center;
+        }
+
+        .landscape-icon {
+            font-size: 28px;
+            margin-bottom: 6px;
+        }
+
+        .landscape-title {
+            font-weight: 900;
+            font-size: 15px;
+            margin-bottom: 4px;
+            color: #6b4d3e;
+        }
+
+        .landscape-text {
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="landscapeBlock" class="landscape-block" aria-hidden="true">
+        <div class="landscape-block-card">
+            <div class="landscape-icon">🔒</div>
+            <div class="landscape-title">請直立模式遊玩</div>
+            <div class="landscape-text">
+                手機橫向已暫停，請轉回直立或關閉旋轉鎖。平板仍可橫向彈奏。
+            </div>
+        </div>
+    </div>
+    <!-- Start Overlay -->
+    <div id="startOverlay" class="start-overlay">
+        <div class="start-card">
+            <div class="start-logo">🐾</div>
+            <div class="start-title">Mew Atelier Piano</div>
+            <div class="start-sub">
+                真實鋼琴 12 鍵 · 掉落方塊節奏 · 任務成就 · 本機排行榜
+            </div>
+            <ul class="start-list">
+                <li>使用 A S D F J K L / W E T Y U 操作真實黑白鍵配置。</li>
+                <li>完成章節任務，解鎖「新手 · 穩定 · 高手」進度。</li>
+                <li>挑戰高分進排行榜，展示你的貓掌手速。</li>
+            </ul>
+            <div class="start-actions">
+                <button id="btnStartNow" class="btn-primary-large start-btn-main">
+                    <span>▶️</span> 開始遊戲
+                </button>
+                <button id="btnJustView" class="secondary start-btn-secondary">
+                    先看看介面
+                </button>
+            </div>
+            <div class="start-hint">先按「開始遊戲」就會看到方塊掉下來喔 🐱</div>
+        </div>
+    </div>
+
+    <div class="shell">
+        <header class="nav">
+            <div class="brand">
+                <div class="brand-logo">🐾</div>
+                鋼琴小遊戲 · Mew Atelier
+            </div>
+            <div class="nav-right">
+                <div class="muted mini">
+                    鍵盤：A S D F J K L（白鍵） · W E T Y U（黑鍵） · 可點欄位/方塊/琴鍵
+                </div>
+                <button id="btnRank" class="secondary small badge-btn">
+                    <span class="badge-dot"></span>🏆 排行榜
+                </button>
+                <button id="btnMissions" class="secondary small badge-btn">
+                    <span class="badge-dot"></span>🎯 任務
+                </button>
+            </div>
+        </header>
+
+        <section class="panel">
+            <!-- 控制列 -->
+            <div class="row">
+                <button id="btnStart" class="btn-primary-large">
+                    <span>▶️</span> 開始
+                </button>
+                <button id="btnPause" class="secondary icon-button" title="暫停 / 繼續" disabled>
+                    ⏸
+                </button>
+                <button id="btnRestart" class="secondary icon-button" title="重來" disabled>
+                    🔁
+                </button>
+                <button id="btnSettings" class="secondary icon-button" title="設定">
+                    ⚙️
+                </button>
+                <button id="btnToggleUI" class="secondary small" type="button" aria-pressed="false" aria-label="收合其他控制">
+                    收合功能
+                </button>
+                <button id="btnFullscreen" class="secondary small" type="button" aria-pressed="false"
+                    aria-label="切換全螢幕模式">
+                    全螢幕
+                </button>
+                <button id="btnToggleHints" class="secondary hint-toggle" type="button" aria-pressed="false"
+                    aria-expanded="true" aria-controls="hintColumn" aria-label="隱藏提示與鍵位說明">
+                    <span class="hint-toggle-text">隱藏提示</span>
+                    <span class="hint-toggle-sub">提示 / 鍵位說明</span>
+                </button>
+            </div>
+
+            <div class="row">
+                <span class="field">
+                    模式
+                    <select id="modeSel">
+                        <option value="songs" selected>歌曲（掉方塊）</option>
+                        <option value="free">自由彈奏</option>
+                    </select>
+                </span>
+
+                <span class="field" id="songWrap">
+                    歌曲
+                    <select id="songSel"></select>
+                </span>
+
+                <span id="songInfo" class="song-info" style="display: none"></span>
+
+                <span class="field">
+                    主題
+                    <select id="themeSel">
+                        <option value="warm">暖粉可可</option>
+                        <option value="pink">夢幻粉糖</option>
+                        <option value="mint">薄荷牛奶</option>
+                        <option value="lavender">薰衣紫霧</option>
+                        <option value="sky">軟糖天空</option>
+                    </select>
+                </span>
+
+                <span class="field">
+                    速度
+                    <input id="speed" type="range" min="0.8" max="1.6" step="0.05" value="1.0" />
+                    <b id="speedVal">1.00x</b>
+                </span>
+            </div>
+
+            <!-- HUD -->
+            <div class="hud">
+                <div class="hud-main">
+                    <div class="hud-card hud-score-card" id="scorePill">
+                        <div class="hud-card-title">Score</div>
+                        <div class="hud-card-value" id="score">0</div>
+                        <div class="hud-card-sub">疊 Combo 分數會飛</div>
+                    </div>
+                    <div class="hud-card">
+                        <div class="hud-card-title">Combo</div>
+                        <div class="hud-card-value" id="combo">0</div>
+                        <div class="hud-card-sub">愈高愈加分</div>
+                    </div>
+                    <div class="hud-card">
+                        <div class="hud-card-title">Accuracy</div>
+                        <div class="hud-card-value" id="acc">0%</div>
+                        <div class="hud-card-sub">以 Perfect / Great 權重計算</div>
+                    </div>
+                </div>
+
+                <div class="hud-actions">
+                    <div class="hud-best">
+                        <span class="hud-best-label">Best：</span>
+                        <span id="best">0</span>
+                    </div>
+                    <button id="btnJudgeInfo" class="secondary small">判定說明</button>
+                </div>
+            </div>
+
+            <div class="play-wrap" id="playWrap">
+                <div class="play" id="play">
+                    <div class="lanes" id="lanes"></div>
+                    <div class="hitline"></div>
+                    <div id="judge" class="judge">PERFECT</div>
+                    <div id="comboLabel" class="combo-label"></div>
+                    <div id="countdown" class="countdown"></div>
+                    <div class="free-hint">
+                        這裡沒有方塊，只有你跟琴鍵的時間。隨意彈、隨意創作吧 🐾
+                    </div>
+
+                    <div id="result" class="result" aria-modal="true" role="dialog">
+                        <div class="card">
+                            <h3 style="margin: 0">結果</h3>
+                            <div class="grid">
+                                <div class="stat">Score：<b id="rScore">0</b></div>
+                                <div class="stat">Best：<b id="rBest">0</b></div>
+                                <div class="stat">Accuracy：<b id="rAcc">0%</b></div>
+                                <div class="stat">Max Combo：<b id="rCombo">0</b></div>
+                                <div class="stat">Perfect：<b id="rP">0</b></div>
+                                <div class="stat">Great：<b id="rG">0</b></div>
+                                <div class="stat">Good：<b id="rO">0</b></div>
+                                <div class="stat">Miss：<b id="rM">0</b></div>
+                            </div>
+                            <div class="result-note" id="resultNote"></div>
+                            <div style="
+                    display: flex;
+                    gap: 8px;
+                    justify-content: center;
+                    margin-top: 10px;
+                    flex-wrap: wrap;
+                  ">
+                                <button id="btnAgain">再玩一次</button>
+                                <button id="btnChangeSong" class="secondary">
+                                    換首歌來玩
+                                </button>
+                                <button id="btnSpeedUp" class="secondary">
+                                    速度 +0.2x 挑戰
+                                </button>
+                                <button id="btnClose" class="secondary">關閉</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="cat-column" id="hintColumn">
+                    <div class="cat-sticker">
+                        <div class="cat-emoji">🐱</div>
+                        <strong>喵咪提示</strong>
+                        <div>Perfect 多一點，任務和排行榜都會被你灌爆。</div>
+                    </div>
+                    <div class="cat-sticker">
+                        <div class="cat-emoji">🐾</div>
+                        <strong>鍵位小抄</strong>
+                        <div>A S D F / J K L 是白鍵，W E T Y U 是黑鍵。</div>
+                    </div>
+                    <div class="cat-sticker">
+                        <div class="cat-emoji">🎧</div>
+                        <strong>建議順序</strong>
+                        <div>先 1.0x 打熟，再往 1.2x / 1.4x 挑戰。</div>
+                    </div>
+                    <div class="cat-sticker">
+                        <div class="cat-emoji">🌟</div>
+                        <strong>任務提醒</strong>
+                        <div>達成條件會在右上跳出「任務完成」提示。</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="freePiano" class="freepiano" style="display: none">
+                <div class="whites"></div>
+                <div class="blacks"></div>
+            </div>
+
+            <div class="muted mini" style="margin-top: 8px">
+                提示：只有「畫出過的方塊」才會進入判定；速度調整會同步影響 BGM /
+                方塊；BGM 以 30 秒為一輪。完成任務與高分可在上方按鈕查看。
+            </div>
+        </section>
+    </div>
+
+    <!-- 任務面板 -->
+    <div id="missionsPanel" class="missions-backdrop">
+        <div class="missions-card">
+            <div class="missions-header">
+                <div>
+                    <h3>任務列表 · Mew Atelier</h3>
+                    <div class="missions-sub">
+                        三章式任務曲線：新手 → 穩定 → 高手，完整展示玩家成長感。
+                    </div>
+                </div>
+                <button id="btnCloseMissions" class="secondary small">關閉</button>
+            </div>
+            <div id="missionsProgress" class="missions-progress"></div>
+            <div id="missionsList" class="missions-list"></div>
+        </div>
+    </div>
+
+    <!-- 排行榜面板 -->
+    <div id="rankPanel" class="rank-backdrop">
+        <div class="rank-card">
+            <div class="rank-header">
+                <div>
+                    <h3>排行榜（本機）</h3>
+                    <div class="rank-sub">
+                        顯示你在此裝置上的最佳成績 Top 5（依 Score 排序）
+                    </div>
+                </div>
+                <button id="btnCloseRank" class="secondary small">關閉</button>
+            </div>
+            <table class="rank-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Score</th>
+                        <th>Accuracy</th>
+                        <th>Song</th>
+                        <th>Speed</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody id="rankBody"></tbody>
+            </table>
+            <div id="rankEmpty" class="rank-empty" style="display: none">
+                尚未有紀錄，先來打一首吧！
+            </div>
+        </div>
+    </div>
+
+    <!-- 任務完成提示 Toast -->
+    <div id="toast" class="toast">
+        <span id="toastText"></span>
+        <button id="toastClose" class="toast-close">✕</button>
+    </div>
+
+    <!-- 判定說明面板 -->
+    <div id="judgePanel" class="judge-backdrop">
+        <div class="judge-card">
+            <h3>判定說明</h3>
+            <div class="judge-list">
+                <div>Perfect：±55 ms</div>
+                <div>Great：±95 ms</div>
+                <div>Good：±140 ms</div>
+                <div>Miss：超出以上範圍或按錯鍵</div>
+            </div>
+            <div style="margin-top: 6px; color: #9a7f6a">
+                判定越好、Combo 越高，Score 與任務進度都會飛快上升喔。🐾
+            </div>
+            <div style="text-align: right; margin-top: 8px">
+                <button id="btnCloseJudge" class="secondary small">了解</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 設定面板 -->
+    <div id="settingsPanel" class="settings-backdrop">
+        <div class="settings-card">
+            <div class="settings-header">
+                <div style="font-weight: 900; font-size: 13px">設定</div>
+                <button id="btnCloseSettings" class="secondary small">關閉</button>
+            </div>
+
+            <div class="settings-group">
+                <div class="settings-label">音色</div>
+                <select id="toneSel">
+                    <option value="soft">Soft Piano</option>
+                    <option value="bright">Bright Keys</option>
+                    <option value="bell">Dream Bell</option>
+                    <option value="chiptune">Chiptune</option>
+                    <option value="saw">Synth Pad</option>
+                </select>
+            </div>
+
+            <div class="settings-group">
+                <div class="settings-label">鍵音量</div>
+                <div class="settings-slider-row">
+                    <input id="keysVol" type="range" min="0" max="1" step="0.01" value="0.35" />
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <div class="settings-label">BGM 音量</div>
+                <div class="settings-slider-row">
+                    <input id="bgmVol" type="range" min="0" max="1" step="0.01" value="0.28" />
+                </div>
+            </div>
+
+            <div style="
+            font-size: 10px;
+            color: var(--muted);
+            margin-top: 6px;
+            text-align: right;
+          ">
+                速度會同步影響 BGM / 方塊節奏。
+            </div>
+        </div>
+    </div>
+
+    <script>
+        "use strict";
+        const $ = (s) => document.querySelector(s);
+
+        const playEl = $("#play");
+        const playWrapEl = $("#playWrap");
+        const lanesEl = $("#lanes"),
+            judgeEl = $("#judge"),
+            bestEl = $("#best"),
+            resultEl = $("#result"),
+            freePianoEl = $("#freePiano"),
+            freeWhites = freePianoEl.querySelector(".whites"),
+            freeBlacks = freePianoEl.querySelector(".blacks"),
+            missionsPanelEl = $("#missionsPanel"),
+            missionsListEl = $("#missionsList"),
+            missionsProgEl = $("#missionsProgress"),
+            toastEl = $("#toast"),
+            toastTextEl = $("#toastText"),
+            toastCloseEl = $("#toastClose"),
+            startOverlayEl = $("#startOverlay"),
+            comboLabelEl = $("#comboLabel"),
+            rankPanelEl = $("#rankPanel"),
+            rankBodyEl = $("#rankBody"),
+            rankEmptyEl = $("#rankEmpty"),
+            resultNoteEl = $("#resultNote"),
+            songInfoEl = $("#songInfo"),
+            countdownEl = $("#countdown"),
+            judgePanelEl = $("#judgePanel"),
+            settingsPanelEl = $("#settingsPanel"),
+            songSel = $("#songSel"),
+            speed = $("#speed"),
+            speedVal = $("#speedVal"),
+            btnMissionsEl = $("#btnMissions"),
+            hintColumnEl = $("#hintColumn"),
+            hintToggleBtn = $("#btnToggleHints"),
+            btnToggleUI = $("#btnToggleUI"),
+            btnFullscreen = $("#btnFullscreen"),
+            landscapeBlockEl = $("#landscapeBlock");
+
+        /* localStorage 安全封裝 */
+        const storage = (() => {
+            let supported = true;
+            try {
+                const probeKey = "__mew_probe__";
+                window.localStorage.setItem(probeKey, "1");
+                window.localStorage.removeItem(probeKey);
+            } catch (e) {
+                supported = false;
+            }
+            const mem = {};
+            return {
+                supported,
+                get: (k) => {
+                    try {
+                        return supported ? window.localStorage.getItem(k) : mem[k] ?? null;
+                    } catch (e) {
+                        return mem[k] ?? null;
+                    }
+                },
+                set: (k, v) => {
+                    try {
+                        if (supported) window.localStorage.setItem(k, v);
+                        else mem[k] = v;
+                    } catch (e) {
+                        mem[k] = v;
+                    }
+                },
+                remove: (k) => {
+                    try {
+                        if (supported) window.localStorage.removeItem(k);
+                        else delete mem[k];
+                    } catch (e) {
+                        delete mem[k];
+                    }
+                },
+            };
+        })();
+        function cloneVal(v) {
+            try {
+                return structuredClone(v);
+            } catch (e) {
+                try {
+                    return JSON.parse(JSON.stringify(v));
+                } catch (e) {
+                    return v;
+                }
+            }
+        }
+        function readJSON(key, fallback) {
+            try {
+                const raw = storage.get(key);
+                if (!raw) return cloneVal(fallback);
+                return JSON.parse(raw);
+            } catch (e) {
+                return cloneVal(fallback);
+            }
+        }
+        function writeJSON(key, val) {
+            try {
+                storage.set(key, JSON.stringify(val));
+            } catch (e) { }
+        }
+        const STORE_KEY = "pianotiles12_realkeys_v2";
+
+        const HINT_VIS_KEY = "mew_hint_visibility_v1";
+        const QUEST_KEY = "mew_quests_v1";
+        const LB_KEY = "mew_leaderboard_v1";
+
+        let hintHidden = false;
+
+        function applyHintVisibility(hidden, { persist = true } = {}) {
+            document.body.classList.toggle("hints-hidden", hidden);
+            if (hintColumnEl) {
+                hintColumnEl.setAttribute("aria-hidden", hidden ? "true" : "false");
+            }
+            if (hintToggleBtn) {
+                hintToggleBtn.setAttribute("aria-pressed", hidden ? "true" : "false");
+                hintToggleBtn.setAttribute("aria-expanded", hidden ? "false" : "true");
+                hintToggleBtn.setAttribute(
+                    "aria-label",
+                    hidden ? "顯示提示與鍵位說明" : "隱藏提示與鍵位說明"
+                );
+                const txtEl = hintToggleBtn.querySelector(".hint-toggle-text");
+                if (txtEl) txtEl.textContent = hidden ? "顯示提示" : "隱藏提示";
+            }
+            if (persist) {
+                storage.set(HINT_VIS_KEY, hidden ? "hidden" : "shown");
+            }
+        }
+
+        function initHintToggle() {
+            const stored = storage.get(HINT_VIS_KEY);
+            hintHidden =
+                stored === "hidden" ||
+                (!stored && window.matchMedia("(max-width: 768px)").matches);
+            applyHintVisibility(hintHidden, { persist: false });
+            hintToggleBtn?.addEventListener("click", () => {
+                hintHidden = !hintHidden;
+                applyHintVisibility(hintHidden);
+            });
+        }
+
+        function applyCompactUI(on) {
+            document.body.classList.toggle("compact-ui", on);
+            if (btnToggleUI) {
+                btnToggleUI.setAttribute("aria-pressed", on ? "true" : "false");
+                btnToggleUI.textContent = on ? "展開功能" : "收合功能";
+                btnToggleUI.setAttribute(
+                    "aria-label",
+                    on ? "展開其他功能" : "收合其他功能"
+                );
+            }
+        }
+
+        function updateFullscreenBtn() {
+            if (!btnFullscreen) return;
+            const on = Boolean(document.fullscreenElement);
+            btnFullscreen.textContent = on ? "正常模式" : "全螢幕";
+            btnFullscreen.setAttribute("aria-pressed", on ? "true" : "false");
+            btnFullscreen.setAttribute(
+                "aria-label",
+                on ? "退出全螢幕回正常模式" : "切換全螢幕模式"
+            );
+        }
+
+        function setAppHeight() {
+            const h =
+                (window.visualViewport && window.visualViewport.height) ||
+                window.innerHeight ||
+                0;
+            if (h > 0) {
+                document.documentElement.style.setProperty("--app-height", `${h}px`);
+            }
+        }
+
+        async function enterFullscreen() {
+            setAppHeight();
+            const target = document.documentElement;
+            let ok = false;
+            try {
+                if (target.requestFullscreen) {
+                    await target.requestFullscreen();
+                    ok = true;
+                }
+            } catch (e) { }
+            if (!ok) {
+                document.body.classList.add("fullscreen-active");
+            }
+            try {
+                if (screen.orientation?.lock) {
+                    const current = screen.orientation.type || "";
+                    if (current.includes("portrait")) {
+                        await screen.orientation.lock("portrait").catch(() => { });
+                    } else if (current.includes("landscape")) {
+                        await screen.orientation.lock("landscape").catch(() => { });
+                    }
+                }
+            } catch (e) { }
+        }
+
+        function exitFullscreen() {
+            document.body.classList.remove("fullscreen-active");
+            if (document.fullscreenElement) {
+                document.exitFullscreen().catch(() => { });
+            }
+        }
+
+        function toggleFullscreen() {
+            if (document.fullscreenElement || document.body.classList.contains("fullscreen-active")) {
+                exitFullscreen();
+            } else {
+                enterFullscreen();
+            }
+        }
+
+        const QUEST_DEFS = [
+            {
+                id: "Q1_first_clear",
+                title: "第一次的喵之音",
+                desc: "完成任一首歌一次。",
+                tag: "新手",
+                chapter: "ch1",
+            },
+            {
+                id: "Q2_just_try",
+                title: "不放棄就過關",
+                desc: "任意歌曲，Score ≥ 3000。",
+                tag: "新手",
+                chapter: "ch1",
+            },
+            {
+                id: "Q3_acc70",
+                title: "穩穩按的貓咪",
+                desc: "任意歌曲，Accuracy ≥ 70%。",
+                tag: "新手",
+                chapter: "ch1",
+            },
+            {
+                id: "Q4_combo20",
+                title: "連擊入門",
+                desc: "任意歌曲，Max Combo ≥ 20。",
+                tag: "新手",
+                chapter: "ch1",
+            },
+            {
+                id: "Q5_acc80_miss5",
+                title: "喵舍練功房",
+                desc: "任意歌曲，Accuracy ≥ 80%，且 Miss ≤ 5。",
+                tag: "穩定",
+                chapter: "ch2",
+            },
+            {
+                id: "Q6_combo40",
+                title: "Combo 小天才",
+                desc: "任意歌曲，Max Combo ≥ 40。",
+                tag: "穩定",
+                chapter: "ch2",
+            },
+            {
+                id: "Q7_smooth8000",
+                title: "Smooth Electro 考核",
+                desc: "Smooth Electro Pop，Score ≥ 8000。",
+                tag: "指定曲",
+                chapter: "ch2",
+            },
+            {
+                id: "Q8_summer82",
+                title: "夏日流暢手",
+                desc: "Summer Pop，Accuracy ≥ 82%。",
+                tag: "指定曲",
+                chapter: "ch2",
+            },
+            {
+                id: "Q9_two_75",
+                title: "穩健玩家試煉",
+                desc: "連續兩局 Accuracy ≥ 75%。",
+                tag: "穩定",
+                chapter: "ch2",
+            },
+            {
+                id: "Q10_free30",
+                title: "自由彈奏啟動",
+                desc: "自由彈奏累計按下 30 個鍵。",
+                tag: "自由彈奏",
+                chapter: "ch2",
+            },
+            {
+                id: "Q11_speed12_score",
+                title: "速度突破 1.2x",
+                desc: "速度 ≥ 1.2x，Score ≥ 9000。",
+                tag: "挑戰",
+                chapter: "ch3",
+            },
+            {
+                id: "Q12_speed14_acc",
+                title: "極速貓掌 1.4x",
+                desc: "速度 ≥ 1.4x，Accuracy ≥ 78%。",
+                tag: "挑戰",
+                chapter: "ch3",
+            },
+            {
+                id: "Q13_no_miss",
+                title: "零失誤挑戰",
+                desc: "任意歌曲，Miss = 0。",
+                tag: "挑戰",
+                chapter: "ch3",
+            },
+            {
+                id: "Q14_perfect60_acc88",
+                title: "Perfect Lover",
+                desc: "Perfect ≥ 60 且 Accuracy ≥ 88%。",
+                tag: "挑戰",
+                chapter: "ch3",
+            },
+            {
+                id: "Q15_combo80",
+                title: "連擊之王",
+                desc: "Max Combo ≥ 80。",
+                tag: "挑戰",
+                chapter: "ch3",
+            },
+            {
+                id: "Q16_midnight",
+                title: "Midnight Pulse 試練",
+                desc: "Midnight Pulse，速度 ≥ 1.25x，Accuracy ≥ 85%。",
+                tag: "指定曲",
+                chapter: "ch3",
+            },
+            {
+                id: "Q17_five_songs",
+                title: "多曲通關證書",
+                desc: "5 首不同歌曲，各達成 Score ≥ 8000。",
+                tag: "全能",
+                chapter: "ch3",
+            },
+            {
+                id: "Q18_allround",
+                title: "全能玩家章",
+                desc: "10 首歌皆玩過，且其中 3 首 Accuracy ≥ 85%。",
+                tag: "全能",
+                chapter: "ch3",
+            },
+            {
+                id: "Q19_master",
+                title: "Mew Atelier Master",
+                desc: "速度 ≥ 1.5x，Miss = 0，Accuracy ≥ 90%。",
+                tag: "終極",
+                chapter: "ch3",
+            },
+            {
+                id: "Q20_creative45",
+                title: "創作者的手感",
+                desc: "自由彈奏持續創作 45 秒以上。",
+                tag: "自由彈奏",
+                chapter: "ch3",
+            },
+            {
+                id: "Q21_score10000",
+                title: "破萬高手",
+                desc: "任意歌曲 Score ≥ 10000。",
+                tag: "挑戰",
+                chapter: "ch2",
+            },
+            {
+                id: "Q22_score12000",
+                title: "十二分火力",
+                desc: "任意歌曲 Score ≥ 12000。",
+                tag: "挑戰",
+                chapter: "ch3",
+            },
+            {
+                id: "Q23_acc85",
+                title: "穩定 85%",
+                desc: "任意歌曲 Accuracy ≥ 85%。",
+                tag: "進階",
+                chapter: "ch2",
+            },
+            {
+                id: "Q24_acc90_miss2",
+                title: "九成準度",
+                desc: "Accuracy ≥ 90%，且 Miss ≤ 2。",
+                tag: "進階",
+                chapter: "ch3",
+            },
+            {
+                id: "Q25_combo60",
+                title: "連擊六十",
+                desc: "Max Combo ≥ 60。",
+                tag: "挑戰",
+                chapter: "ch2",
+            },
+            {
+                id: "Q26_combo70_speed12",
+                title: "高速連擊",
+                desc: "速度 ≥ 1.2x 且 Max Combo ≥ 70。",
+                tag: "高速",
+                chapter: "ch3",
+            },
+            {
+                id: "Q27_speed13_nomiss",
+                title: "1.3x 無失誤",
+                desc: "速度 ≥ 1.3x 且 Miss = 0。",
+                tag: "高速",
+                chapter: "ch4",
+            },
+            {
+                id: "Q28_speed16_clear",
+                title: "極速穩定",
+                desc: "速度 ≥ 1.55x 且 Accuracy ≥ 85%。",
+                tag: "高速",
+                chapter: "ch4",
+            },
+            {
+                id: "Q29_techvlog_acc85",
+                title: "科技 Vlog 精準",
+                desc: "Technology Vlog Accuracy ≥ 85%。",
+                tag: "專曲",
+                chapter: "ch4",
+            },
+            {
+                id: "Q30_futurebass_9500",
+                title: "Future Bass 破 9500",
+                desc: "Future Bass Light Score ≥ 9500。",
+                tag: "專曲",
+                chapter: "ch4",
+            },
+            {
+                id: "Q31_no_good",
+                title: "零 Good",
+                desc: "通關時 Good = 0。",
+                tag: "精準",
+                chapter: "ch4",
+            },
+            {
+                id: "Q32_two_90",
+                title: "連兩場 90%",
+                desc: "連續兩場 Accuracy ≥ 90%。",
+                tag: "連線",
+                chapter: "ch4",
+            },
+            {
+                id: "Q33_free50",
+                title: "自由揮灑 50 下",
+                desc: "自由彈奏累積 50 下鍵擊。",
+                tag: "自由彈奏",
+                chapter: "ch5",
+            },
+            {
+                id: "Q34_free90",
+                title: "自由 90 秒",
+                desc: "自由彈奏持續 90 秒以上。",
+                tag: "自由彈奏",
+                chapter: "ch5",
+            },
+            {
+                id: "Q35_three_10000",
+                title: "三曲破萬",
+                desc: "三首不同歌曲 Score ≥ 10000。",
+                tag: "全能",
+                chapter: "ch4",
+            },
+        ];
+
+        const CHAPTERS = [
+            { id: "ch1", name: "Chapter 1 新手入坑篇" },
+            { id: "ch2", name: "Chapter 2 穩定表現篇" },
+            { id: "ch3", name: "Chapter 3 高手挑戰篇" },
+            { id: "ch4", name: "Chapter 4 速度專修篇" },
+            { id: "ch5", name: "Chapter 5 自由創作篇" },
+        ];
+
+        let quests = readJSON(QUEST_KEY, {});
+
+        /* Toast */
+        let toastQueue = [];
+        let toastShowing = false;
+        let toastTimer = null;
+        function enqueueToast(text) {
+            toastQueue.push(text);
+            if (!toastShowing) showNextToast();
+        }
+        function showNextToast() {
+            if (!toastQueue.length) {
+                toastShowing = false;
+                return;
+            }
+            toastShowing = true;
+            const msg = toastQueue.shift();
+            toastTextEl.textContent = msg;
+            toastEl.classList.add("show");
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                hideToastAndNext();
+            }, 10000);
+        }
+        function hideToastAndNext() {
+            toastEl.classList.remove("show");
+            clearTimeout(toastTimer);
+            setTimeout(() => {
+                toastShowing = false;
+                showNextToast();
+            }, 150);
+        }
+        toastCloseEl.addEventListener("click", hideToastAndNext);
+
+        function todayStr() {
+            return new Date().toISOString().slice(0, 10);
+        }
+        function saveQuests() {
+            writeJSON(QUEST_KEY, quests);
+        }
+        function markMissionsNew() {
+            btnMissionsEl.classList.add("has-new");
+        }
+        function clearMissionsNew() {
+            btnMissionsEl.classList.remove("has-new");
+        }
+        function completeQuest(id) {
+            if (!quests[id]) {
+                quests[id] = { done: true, date: todayStr() };
+                saveQuests();
+                const q = QUEST_DEFS.find((x) => x.id === id);
+                if (q) enqueueToast(`任務完成：${q.title}`);
+                renderQuests();
+                renderChapters();
+                markMissionsNew();
+            }
+        }
+
+        function renderQuests() {
+            missionsListEl.innerHTML = "";
+            QUEST_DEFS.forEach((q) => {
+                const info = quests[q.id];
+                const div = document.createElement("div");
+                div.className = "mission-item";
+
+                const title = document.createElement("div");
+                title.className = "mission-title";
+
+                const status = document.createElement("span");
+                status.textContent = info?.done ? "✅" : "◻";
+
+                const label = document.createElement("span");
+                label.textContent = q.title;
+
+                const tag = document.createElement("span");
+                tag.className = "mission-tag";
+                tag.textContent = q.tag;
+
+                title.appendChild(status);
+                title.appendChild(label);
+                title.appendChild(tag);
+
+                const desc = document.createElement("div");
+                desc.className = "mission-desc";
+                desc.textContent = q.desc;
+
+                div.appendChild(title);
+                div.appendChild(desc);
+
+                if (info?.done) {
+                    const done = document.createElement("div");
+                    done.className = "mission-done";
+                    done.textContent = `已完成：${info.date}`;
+                    div.appendChild(done);
+                }
+
+                missionsListEl.appendChild(div);
+            });
+        }
+
+        function renderChapters() {
+            missionsProgEl.innerHTML = "";
+            CHAPTERS.forEach((c) => {
+                const list = QUEST_DEFS.filter((q) => q.chapter === c.id);
+                const done = list.filter((q) => quests[q.id]?.done).length;
+                const total = list.length || 1;
+                const rate = Math.round((done / total) * 100);
+
+                const wrap = document.createElement("div");
+                wrap.className = "chapter";
+
+                const title = document.createElement("div");
+                title.className = "chapter-title";
+                title.textContent = c.name;
+
+                const barWrap = document.createElement("div");
+                barWrap.className = "chapter-bar-wrap";
+                const bar = document.createElement("div");
+                bar.className = "chapter-bar";
+                bar.style.width = rate + "%";
+                barWrap.appendChild(bar);
+
+                const txt = document.createElement("div");
+                txt.className = "chapter-rate";
+                txt.textContent = `${done}/${total} 任務完成（${rate}%）`;
+
+                wrap.appendChild(title);
+                wrap.appendChild(barWrap);
+                wrap.appendChild(txt);
+                missionsProgEl.appendChild(wrap);
+            });
+        }
+
+        /* 排行榜 */
+        function loadLeaderboard() {
+            return dedupeLeaderboard(readJSON(LB_KEY, []));
+        }
+        function dedupeLeaderboard(list) {
+            const byKey = new Map();
+            list.forEach((e) => {
+                if (!e) return;
+                const songKey = e.songId || "";
+                const speedKey = e.speed || "1.00x";
+                const key = `${songKey}__${speedKey}`;
+                const prev = byKey.get(key);
+                if (!prev || e.score > prev.score || (e.score === prev.score && (e.acc || 0) >= (prev.acc || 0))) {
+                    byKey.set(key, e);
+                }
+            });
+            return Array.from(byKey.values());
+        }
+        function saveLeaderboard(list) {
+            writeJSON(LB_KEY, list);
+        }
+        function updateLeaderboard(entry) {
+            let list = dedupeLeaderboard([...loadLeaderboard(), entry]);
+            list.sort((a, b) => b.score - a.score || b.acc - a.acc);
+            if (list.length > 30) list = list.slice(0, 30);
+            saveLeaderboard(list);
+        }
+
+        function renderLeaderboard() {
+            const list = loadLeaderboard();
+            rankBodyEl.innerHTML = "";
+            const currentSongId = songSel?.value || "";
+            const currentSpeed = Number(speed?.value || 1).toFixed(2) + "x";
+            const scoped = list.filter(
+                (e) => e.songId === currentSongId && e.speed === currentSpeed
+            );
+            const display = scoped.length ? scoped : list;
+            if (!display.length) {
+                rankEmptyEl.style.display = "block";
+                return;
+            }
+            rankEmptyEl.style.display = "none";
+            const top = display.slice(0, 5);
+            top.forEach((e, i) => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+            <td>${i + 1}</td>
+            <td>${e.score}</td>
+            <td>${e.acc}%</td>
+            <td class="song">${e.songName || "-"}</td>
+            <td>${e.speed || "1.0x"}</td>
+            <td>${e.date || ""}</td>
+          `;
+                rankBodyEl.appendChild(tr);
+            });
+        }
+
+        /* 主鍵盤 & 音色 */
+        const WHITE_LANES = [0, 2, 4, 5, 7, 9, 11];
+        const BLACK_LANES = [1, 3, 6, 8, 10];
+        const MOBILE_TARGET_OFFSETS = [0, 2, 4, 5, 7, 9, 11, 12];
+        const LAYOUTS = {
+            desktop: {
+                id: "desktop",
+                lanes: 12,
+                keyMap: {
+                    a: 0,
+                    w: 1,
+                    s: 2,
+                    e: 3,
+                    d: 4,
+                    f: 5,
+                    t: 6,
+                    j: 7,
+                    y: 8,
+                    k: 9,
+                    u: 10,
+                    l: 11,
+                },
+                midiOffset: (lane) => lane,
+                mapLane: (lane) => lane,
+                whiteLanes: WHITE_LANES,
+                blackLanes: BLACK_LANES,
+                freeLabels: {
+                    white: ["C(A)", "D(S)", "E(D)", "F(F)", "G(J)", "A(K)", "B(L)"],
+                    black: {
+                        1: "C#(W)",
+                        3: "D#(E)",
+                        6: "F#(T)",
+                        8: "G#(Y)",
+                        10: "A#(U)",
+                    },
+                },
+            },
+            mobile8: {
+                id: "mobile8",
+                lanes: 8,
+                keyMap: {
+                    a: 0,
+                    s: 1,
+                    d: 2,
+                    f: 3,
+                    j: 4,
+                    k: 5,
+                    l: 6,
+                    ";": 7,
+                },
+                midiOffset: (lane) => MOBILE_TARGET_OFFSETS[lane] ?? lane,
+                mapLane: (lane) => {
+                    if (lane < 0) return lane;
+                    let best = 0;
+                    let bestDiff = Infinity;
+                    MOBILE_TARGET_OFFSETS.forEach((off, idx) => {
+                        const diff = Math.abs(off - lane);
+                        if (diff < bestDiff) {
+                            bestDiff = diff;
+                            best = idx;
+                        }
+                    });
+                    return best;
+                },
+                whiteLanes: [0, 1, 2, 3, 4, 5, 6, 7],
+                blackLanes: [],
+                freeLabels: {
+                    white: ["C(A)", "D(S)", "E(D)", "F(F)", "G(J)", "A(K)", "B(L)", "C5(;)"],
+                    black: {},
+                },
+            },
+        };
+
+        let audioCtx = null,
+            masterGain = null,
+            bgmGain = null,
+            currentTone = "soft";
+        const tonePresets = {
+            soft: { attack: 0.02, release: 0.4, type: "sine", detune: 0 },
+            bright: { attack: 0.01, release: 0.5, type: "triangle", detune: 8 },
+            synth: { attack: 0.02, release: 0.6, type: "sawtooth", detune: 0 },
+        };
+        let currentLayoutId = "desktop";
+        let currentLayout = LAYOUTS.desktop;
+        let keyMap = { ...LAYOUTS.desktop.keyMap };
+        function mapLaneForLayout(lane) {
+            return currentLayout.mapLane ? currentLayout.mapLane(lane) : lane;
+        }
+        function mapSeqForLayout(seq) {
+            if (!seq) return [];
+            return seq.map((lane) => (lane < 0 ? -1 : mapLaneForLayout(lane)));
+        }
+
+        function ensureAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                masterGain = audioCtx.createGain();
+                masterGain.gain.value = Number($("#keysVol").value);
+                masterGain.connect(audioCtx.destination);
+            }
+        }
+        function ensureBgmGain() {
+            ensureAudio();
+            if (!bgmGain) {
+                bgmGain = audioCtx.createGain();
+                bgmGain.gain.value = Number($("#bgmVol").value);
+                bgmGain.connect(audioCtx.destination);
+            }
+        }
+        ["click", "touchstart", "keydown"].forEach((ev) => {
+            window.addEventListener(
+                ev,
+                () => {
+                    if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+                },
+                { once: true, passive: true }
+            );
+        });
+        $("#keysVol").addEventListener("input", () => {
+            if (masterGain) masterGain.gain.value = Number($("#keysVol").value);
+        });
+
+        const bgm = new Audio();
+        bgm.loop = false;
+        bgm.preload = "auto";
+        bgm.crossOrigin = "anonymous";
+        let bgmStopTimer = null;
+        let synthBgmTimer = null;
+        function stopSynthBgm() {
+            if (synthBgmTimer) {
+                clearInterval(synthBgmTimer);
+                synthBgmTimer = null;
+            }
+        }
+        function playBgmTone(midi, dur = 0.26) {
+            ensureBgmGain();
+            const nowT = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = "sine";
+            osc.frequency.value = midiToFreq(midi);
+            gain.gain.setValueAtTime(0.0001, nowT);
+            gain.gain.exponentialRampToValueAtTime(0.55, nowT + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.0001, nowT + dur);
+            osc.connect(gain);
+            gain.connect(bgmGain);
+            osc.start(nowT);
+            osc.stop(nowT + dur + 0.05);
+        }
+        function startSynthBgm(song) {
+            stopSynthBgm();
+            if (!song) return;
+            ensureAudio();
+            const pattern = song.bgmPattern || [0, 5, 7, 12];
+            const base = (song.baseNote ?? 60) - 12;
+            let idx = 0;
+            const speedFactor = Number(speed.value) || 1;
+            const beatMs = 60000 / (song.bpm || 110) / speedFactor;
+            const interval = Math.max(160, beatMs * 2.2);
+            synthBgmTimer = setInterval(() => {
+                const off = pattern[idx % pattern.length];
+                playBgmTone(base + off, 0.32);
+                idx++;
+            }, interval);
+        }
+        function stopAllBgm() {
+            if (bgmStopTimer) {
+                clearTimeout(bgmStopTimer);
+                bgmStopTimer = null;
+            }
+            stopSynthBgm();
+            try {
+                bgm.pause();
+                bgm.currentTime = 0;
+            } catch (e) { }
+        }
+        async function startBgm(song) {
+            stopAllBgm();
+            if (!song) return;
+            const speedVal = Number(speed.value) || 1;
+            bgm.volume = Number($("#bgmVol").value);
+            bgm.playbackRate = speedVal;
+            if (song.bgmFile) {
+                bgm.src = `assets/bgm/${song.bgmFile}`;
+                try {
+                    bgm.currentTime = 0;
+                    await bgm.play();
+                    const dur = 30000 / speedVal;
+                    bgmStopTimer = setTimeout(() => {
+                        try {
+                            bgm.pause();
+                        } catch (e) { }
+                    }, dur + 200);
+                    return;
+                } catch (e) { }
+            }
+            startSynthBgm(song);
+        }
+        bgm.addEventListener("error", () => {
+            stopAllBgm();
+            if (game?.song) startSynthBgm(game.song);
+        });
+        $("#bgmVol").addEventListener("input", () => {
+            bgm.volume = Number($("#bgmVol").value);
+            if (bgmGain) bgmGain.gain.value = Number($("#bgmVol").value);
+        });
+
+        function midiToFreq(m) {
+            return 440 * Math.pow(2, (m - 69) / 12);
+        }
+        function laneToMidi(lane) {
+            const base = game && game.song ? game.song.baseNote ?? 60 : 60;
+            const off =
+                currentLayout.midiOffset && typeof currentLayout.midiOffset === "function"
+                    ? currentLayout.midiOffset(lane)
+                    : lane;
+            return base + off;
+        }
+
+        function playSynthByLane(lane, dur = 0.2) {
+            if (!audioCtx || !masterGain) return;
+            const nowT = audioCtx.currentTime;
+            const freq = midiToFreq(laneToMidi(lane));
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            let attack = 0.012;
+            let release = dur;
+            let type = "sine";
+
+            switch (currentTone) {
+                case "soft":
+                    type = "sine";
+                    attack = 0.012;
+                    release = dur + 0.04;
+                    break;
+                case "bright":
+                    type = "square";
+                    attack = 0.006;
+                    release = dur;
+                    break;
+                case "bell":
+                    type = "sine";
+                    attack = 0.004;
+                    release = dur + 0.18;
+                    // 簡單 FM 鈴聲
+                    const mod = audioCtx.createOscillator();
+                    const modGain = audioCtx.createGain();
+                    mod.frequency.value = 8;
+                    modGain.gain.value = freq * 0.015;
+                    mod.connect(modGain);
+                    modGain.connect(osc.frequency);
+                    mod.start(nowT);
+                    mod.stop(nowT + release);
+                    break;
+                case "chiptune":
+                    type = "square";
+                    attack = 0.003;
+                    release = dur * 0.7;
+                    break;
+                case "saw":
+                    type = "sawtooth";
+                    attack = 0.01;
+                    release = dur + 0.12;
+                    break;
+            }
+
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, nowT);
+
+            gain.gain.setValueAtTime(0.0001, nowT);
+            gain.gain.exponentialRampToValueAtTime(0.8, nowT + attack);
+            gain.gain.exponentialRampToValueAtTime(0.0001, nowT + release);
+
+            osc.connect(gain);
+            gain.connect(masterGain);
+
+            osc.start(nowT);
+            osc.stop(nowT + release + 0.02);
+        }
+
+        /* Theme & Tone select */
+        const themeSel = $("#themeSel");
+        const toneSel = $("#toneSel");
+        document.body.setAttribute("data-theme", "warm");
+        themeSel.addEventListener("change", () => {
+            document.body.setAttribute("data-theme", themeSel.value);
+        });
+        toneSel.addEventListener("change", () => {
+            currentTone = toneSel.value;
+        });
+
+        /* Lane 幾何 */
+        function makeLaneGeometry() {
+            if (currentLayoutId === "desktop") {
+                const whiteW = 100 / 7;
+                const blackW = whiteW * 0.6;
+                const geo = {};
+                for (let i = 0; i < 7; i++) {
+                    const lane = WHITE_LANES[i];
+                    geo[lane] = { left: i * whiteW, width: whiteW, z: 1 };
+                }
+                const blackMap = { 1: 0, 3: 1, 6: 3, 8: 4, 10: 5 };
+                for (const b of BLACK_LANES) {
+                    const slot = blackMap[b];
+                    const center = slot * whiteW + whiteW * 0.72;
+                    geo[b] = { left: center - blackW / 2, width: blackW, z: 2 };
+                }
+                return geo;
+            }
+            const geo = {};
+            const w = 100 / currentLayout.lanes;
+            for (let i = 0; i < currentLayout.lanes; i++) {
+                geo[i] = { left: i * w, width: w, z: 1 };
+            }
+            return geo;
+        }
+        let laneGeo = null;
+        function refreshLaneDom() {
+            laneGeo = makeLaneGeometry();
+            lanesEl.innerHTML = "";
+            for (let lane = 0; lane < currentLayout.lanes; lane++) {
+                const g = laneGeo[lane];
+                const d = document.createElement("div");
+                d.className = "lane";
+                d.style.left = g.left + "%";
+                d.style.width = g.width + "%";
+                d.style.zIndex = g.z;
+                d.dataset.lane = lane;
+                d.addEventListener("pointerdown", () => judge(lane));
+                lanesEl.appendChild(d);
+            }
+        }
+
+        /* 曲庫生成工具 */
+        function makeSong(
+            id,
+            name,
+            bpm,
+            beats,
+            motif,
+            bgmFile,
+            baseNote,
+            diff,
+            tip
+        ) {
+            const seq = [];
+            let i = 0;
+            while (i < beats) {
+                for (const m of motif) {
+                    if (i >= beats) break;
+                    seq.push(m);
+                    i++;
+                }
+            }
+            return { id, name, bpm, seq, bgmFile, baseNote, diff, tip };
+        }
+        function withRests(seq, every = 8) {
+            return seq.map((v, i) => ((i + 1) % every === 0 ? -1 : v));
+        }
+
+        /* 30 首歌（前 10 原本 + 新增 20 首） */
+        const SONGS = (function () {
+            const songs = [];
+
+            const s1 = makeSong(
+                "smooth_electro",
+                "Smooth Electro Pop (30s)",
+                120,
+                60,
+                [0, 2, 4, 5, 7, 9, 11, 7, 5, 4, 2, 0, 1, 3, 2, 1],
+                "smooth_electro_pop_30s.mp3",
+                60,
+                "★☆☆ 新手推薦",
+                "穩定節奏，適合熟悉按鍵與判定。建議 1.0x。"
+            );
+            s1.seq = withRests(s1.seq, 8);
+            songs.push(s1);
+
+            const s2 = makeSong(
+                "summer_pop",
+                "Summer Pop (30s)",
+                100,
+                50,
+                [0, 1, 3, 2, 4, 6, 5, 7, 9, 8, 10, 11],
+                "summer_pop_30s.mp3",
+                60,
+                "★☆☆ 輕鬆節奏",
+                "節奏寬鬆，適合解任務放鬆打。"
+            );
+            s2.seq = withRests(s2.seq, 10);
+            songs.push(s2);
+
+            const s3 = makeSong(
+                "pop_uplift",
+                "Pop Uplift (30s)",
+                108,
+                54,
+                [0, 2, 4, 6, 7, 9, 11, 10, 8, 7, 6, 4, 2, 1, 3],
+                "pop_uplift_30s.mp3",
+                61,
+                "★★☆ 中階練習",
+                "需要更細的 timing，適合作為進階練功曲。"
+            );
+            s3.seq = withRests(s3.seq, 9);
+            songs.push(s3);
+
+            const s4 = makeSong(
+                "bright_uplift",
+                "Bright Uplifting Pop (30s)",
+                120,
+                60,
+                [0, 3, 5, 8, 7, 6, 9, 11, 10],
+                "bright_uplifting_pop_30s.mp3",
+                60,
+                "★★☆ 流暢小挑戰",
+                "跳躍較多，適合熟悉手指移動。"
+            );
+            s4.seq = withRests(s4.seq, 12);
+            songs.push(s4);
+
+            const s5 = makeSong(
+                "laidback_sun",
+                "Laidback Sun (30s)",
+                100,
+                50,
+                [0, 2, 1, 3, 4, 6, 5, 7, 9, 8, 10, 11],
+                "laidback_sun_30s.mp3",
+                67,
+                "★☆☆ 放鬆節奏",
+                "滑順旋律，適合暖手。"
+            );
+            s5.seq = withRests(s5.seq, 10);
+            songs.push(s5);
+
+            const s6 = makeSong(
+                "motiv_indie",
+                "Motivating Indie Rock (30s)",
+                120,
+                60,
+                [0, 2, 4, 5, 7, 9, 11, 10, 8, 7, 6, 4, 2],
+                "motivating_indie_rock_30s.mp3",
+                65,
+                "★★★ 穩定高手",
+                "需要穩定手感，適合挑戰高 Combo。"
+            );
+            s6.seq = withRests(s6.seq, 8);
+            songs.push(s6);
+
+            const s7 = makeSong(
+                "positive_indie",
+                "Positive Indie Rock Groove (30s)",
+                120,
+                60,
+                [0, 1, 3, 5, 6, 8, 10, 11, 9, 7, 6, 4],
+                "positive_indie_rock_groove_30s.mp3",
+                64,
+                "★★★ Groove 向",
+                "較多黑鍵，訓練鍵位熟悉度。"
+            );
+            s7.seq = withRests(s7.seq, 8);
+            songs.push(s7);
+
+            const s8 = makeSong(
+                "midnight_pulse",
+                "Midnight Pulse (30s)",
+                100,
+                50,
+                [0, 3, 4, 6, 7, 10, 11, 8, 7, 5, 4, 2],
+                "midnight_pulse_30s.mp3",
+                60,
+                "★★★★ 挑戰曲",
+                "節奏多變，對判定精度有要求。"
+            );
+            s8.seq = withRests(s8.seq, 10);
+            songs.push(s8);
+
+            const s9 = makeSong(
+                "serene_horizons",
+                "Serene Horizons (30s)",
+                120,
+                60,
+                [7, 7, 9, 9, 10, 10, 11, 11, 10, 9, 7, 6, 4, 2, 0],
+                "serene_horizons_30s.mp3",
+                69,
+                "★★☆ 抒情向",
+                "旋律感強，適合玩出音樂性。"
+            );
+            s9.seq = withRests(s9.seq, 12);
+            songs.push(s9);
+
+            const s10 = makeSong(
+                "tech_vlog",
+                "Technology Vlog (30s)",
+                100,
+                50,
+                [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+                "technology_vlog_30s.mp3",
+                62,
+                "★★★ 均衡練習",
+                "12 鍵全踏遍，適合全鍵記憶。"
+            );
+            s10.seq = withRests(s10.seq, 10);
+            songs.push(s10);
+
+            /* 新增 20 首占位曲 */
+
+            function add(id, name, bpm, motif, file, base, diff, tip, every) {
+                const beats = Math.round(bpm / 2); // 約 30s
+                const s = makeSong(
+                    id,
+                    name,
+                    bpm,
+                    beats,
+                    motif,
+                    file,
+                    base,
+                    diff,
+                    tip
+                );
+                s.seq = withRests(s.seq, every);
+                songs.push(s);
+            }
+
+            add(
+                "city_night_pop",
+                "City Night Pop (30s)",
+                120,
+                [0, 2, 4, 7, 9, 11, 9, 7, 4, 2],
+                "city_night_pop_30s.mp3",
+                60,
+                "★★☆ 都市流行",
+                "夜景感的節奏，適合 Combo 練習。",
+                8
+            );
+            add(
+                "cute_vlog_pop",
+                "Cute Vlog Pop (30s)",
+                110,
+                [0, 1, 3, 5, 7, 5, 3, 1],
+                "cute_vlog_pop_30s.mp3",
+                60,
+                "★☆☆ 可愛向",
+                "適合作為輕鬆入門曲。",
+                8
+            );
+            add(
+                "future_bass_light",
+                "Future Bass Light (30s)",
+                140,
+                [0, 4, 7, 11, 7, 4],
+                "future_bass_light_30s.mp3",
+                60,
+                "★★★ 電氣彈跳",
+                "高 BPM，適合高速鍵位練習。",
+                6
+            );
+            add(
+                "lofi_study",
+                "Lo-fi Study (30s)",
+                80,
+                [0, -1, 2, -1, 4, -1, 7, -1],
+                "lofi_study_30s.mp3",
+                57,
+                "★☆☆ Lo-fi",
+                "慢節奏，容錯高，適合放空。",
+                4
+            );
+            add(
+                "tropical_candy",
+                "Tropical Candy Pop (30s)",
+                110,
+                [0, 2, 4, 7, 9, 7, 4, 2],
+                "tropical_candy_pop_30s.mp3",
+                62,
+                "★★☆ 夏日海島",
+                "大量跳躍與旋律線，手指移動練習。",
+                8
+            );
+            add(
+                "chillhop_cat",
+                "Chillhop Cat (30s)",
+                90,
+                [0, 3, 5, 3, 7, 3],
+                "chillhop_cat_30s.mp3",
+                60,
+                "★☆☆ 慢速 Groove",
+                "貓咪喝咖啡時適合的節奏。",
+                6
+            );
+            add(
+                "jazz_lounge",
+                "Jazz Lounge Night (30s)",
+                115,
+                [0, 2, 3, 5, 7, 9, 10, 7],
+                "jazz_lounge_night_30s.mp3",
+                60,
+                "★★☆ 爵士風",
+                "轉音較多，訓練判定與律動。",
+                8
+            );
+            add(
+                "synthwave_dream",
+                "Synthwave Dream (30s)",
+                120,
+                [0, 4, 7, 11, 7, 4, 2, 0],
+                "synthwave_dream_30s.mp3",
+                60,
+                "★★★ 復古電音",
+                "穩定八分音，適合高速流。",
+                8
+            );
+            add(
+                "ukulele_smile",
+                "Ukulele Smile (30s)",
+                98,
+                [0, 2, 4, 5, 7, 5, 4, 2],
+                "ukulele_smile_30s.mp3",
+                60,
+                "★☆☆ 療癒清新",
+                "適合作為熱身與教學曲。",
+                8
+            );
+            add(
+                "happy_corporate",
+                "Happy Corporate Pop (30s)",
+                118,
+                [0, 2, 4, 7, 4, 2, 0],
+                "happy_corporate_pop_30s.mp3",
+                60,
+                "★☆☆ 穩健節奏",
+                "節奏規律，適合 Accuracy 練習。",
+                8
+            );
+            add(
+                "drum_bass_light",
+                "Light Drum & Bass (30s)",
+                160,
+                [0, 7, 2, 9, 4, 11],
+                "light_dnb_30s.mp3",
+                60,
+                "★★★★ 高速挑戰",
+                "給高手用的反應速度測試。",
+                6
+            );
+            add(
+                "edm_party",
+                "EDM Party Starter (30s)",
+                128,
+                [0, 4, 7, 9, 7, 4],
+                "edm_party_starter_30s.mp3",
+                60,
+                "★★★ Festival",
+                "節奏強烈，適合 Combo 疊高。",
+                6
+            );
+            add(
+                "dreamy_plucks",
+                "Dreamy Plucks (30s)",
+                100,
+                [0, 2, 5, 7, 9, 7, 5, 2],
+                "dreamy_plucks_30s.mp3",
+                60,
+                "★★☆ 夢幻系",
+                "旋律感很重，適合享受音樂。",
+                8
+            );
+            add(
+                "neo_soul",
+                "Neo Soul Groove (30s)",
+                92,
+                [0, 3, 5, 7, 10, 7, 5],
+                "neo_soul_groove_30s.mp3",
+                60,
+                "★★☆ 慢靈魂",
+                "偏難 timing，需要耐心掌握。",
+                8
+            );
+            add(
+                "rock_energetic",
+                "Energetic Pop Rock (30s)",
+                132,
+                [0, 2, 4, 5, 7, 5, 4, 2],
+                "energetic_pop_rock_30s.mp3",
+                60,
+                "★★★ 熱血系",
+                "手感爽快，適合刷分。",
+                6
+            );
+            add(
+                "lofi_night_drive",
+                "Lo-fi Night Drive (30s)",
+                85,
+                [0, -1, 3, -1, 5, -1, 7, -1],
+                "lofi_night_drive_30s.mp3",
+                57,
+                "★☆☆ 夜間通勤",
+                "低壓力練習，順便聽歌。",
+                4
+            );
+            add(
+                "piano_ballad",
+                "Soft Piano Ballad (30s)",
+                95,
+                [0, 2, 4, 5, 7, 9, 7, 5],
+                "soft_piano_ballad_30s.mp3",
+                60,
+                "★☆☆ 抒情鋼琴",
+                "搭配 Soft Piano 音色超適合。",
+                8
+            );
+            add(
+                "electro_swing",
+                "Electro Swing Lite (30s)",
+                118,
+                [0, 3, 7, 10, 7, 3],
+                "electro_swing_lite_30s.mp3",
+                60,
+                "★★★ 趣味跳躍",
+                "黑白鍵混搭，練熟鍵位。",
+                6
+            );
+            add(
+                "ambient_glow",
+                "Ambient Glow (30s)",
+                90,
+                [0, -1, 7, -1, 4, -1, 9, -1],
+                "ambient_glow_30s.mp3",
+                55,
+                "★☆☆ 氛圍系",
+                "適合放鬆按鍵，壓力低。",
+                4
+            );
+            add(
+                "mew_theme",
+                "Mew Atelier Theme (30s)",
+                112,
+                [0, 2, 4, 7, 9, 11, 9, 7, 4, 2, 0],
+                "mew_atelier_theme_30s.mp3",
+                60,
+                "★★☆ 品牌主題",
+                "專屬 Mew Atelier 主題曲，用來展示整體作品。",
+                8
+            );
+
+            return songs;
+        })();
+
+        SONGS.forEach((s) => {
+            const o = document.createElement("option");
+            o.value = s.id;
+            o.textContent = s.name;
+            songSel.appendChild(o);
+        });
+
+        function updateSongInfo(song) {
+            if (!song) {
+                songInfoEl.style.display = "none";
+                return;
+            }
+            songInfoEl.style.display = "inline-flex";
+            songInfoEl.innerHTML = `
+          <div class="song-info-title">${song.name}</div>
+          <div>BPM：${song.bpm} ｜ 難度：${song.diff}</div>
+          <div class="song-info-tags">
+            <span>${song.tip}</span>
+          </div>
+        `;
+        }
+
+        const CONFIG = {
+            HIT_Y: 420,
+            TILE_H: 120,
+            WIN: { perfect: 55, great: 95, good: 140 },
+            LEAD: 8,
+        };
+        const SCOREMAP = { perfect: 300, great: 200, good: 100, miss: 0 };
+
+        function cssNumber(varName, fallback) {
+            const v = getComputedStyle(document.documentElement).getPropertyValue(
+                varName
+            );
+            const n = Number.parseFloat(v);
+            return Number.isFinite(n) ? n : fallback;
+        }
+
+        function setHitlineForViewport() {
+            const vh = window.innerHeight || 800;
+            const isPortrait =
+                window.matchMedia && window.matchMedia("(orientation: portrait)").matches;
+            const target = Math.round(
+                Math.max(50, Math.min(110, vh * (isPortrait ? 0.12 : 0.16)))
+            );
+            document.documentElement.style.setProperty(
+                "--hitline-bottom",
+                `${target}px`
+            );
+        }
+
+        function syncPlayGeometry() {
+            const laneCount = currentLayout?.lanes || 12;
+            document.documentElement.style.setProperty(
+                "--lane-count",
+                String(laneCount)
+            );
+            const playW = playEl?.clientWidth || 0;
+            const laneW = laneCount > 0 && playW ? playW / laneCount : 0;
+            const cssTile = cssNumber("--tile-size", CONFIG.TILE_H);
+            const autoTile =
+                laneW > 0 ? Math.max(70, Math.min(200, laneW + 12)) : cssTile;
+            const tileSize = Number.isFinite(autoTile) ? autoTile : cssTile;
+            document.documentElement.style.setProperty(
+                "--tile-size",
+                `${tileSize}px`
+            );
+            const hitlineBottom = cssNumber("--hitline-bottom", 90);
+            const ph = playEl?.clientHeight || 560;
+            const lineH = 5;
+            const maxHit = ph - hitlineBottom - lineH;
+            const minHit = tileSize * 1.2;
+            const isFullscreen =
+                document.fullscreenElement ||
+                document.body.classList.contains("fullscreen-active");
+            const isLandscape =
+                window.matchMedia && window.matchMedia("(orientation: landscape)").matches;
+            const upperCap = isFullscreen && isLandscape ? ph * 0.68 : ph * 0.78;
+            const target = Math.min(
+                upperCap,
+                ph - hitlineBottom - tileSize * 0.25
+            );
+            CONFIG.TILE_H = tileSize;
+            CONFIG.HIT_Y = Math.max(minHit, Math.min(maxHit, target));
+        }
+
+        let game = null,
+            endTimer = null,
+            autoOffset = 0,
+            autoSamples = [];
+        const tileMap = new Map();
+        const AUTO_MAX_SAMPLES = 12;
+
+        let freeStartTime = null;
+        let freeLastHit = null;
+        let freeHitCount = 0;
+
+        const portraitMobile = window.matchMedia(
+            "(max-width: 820px) and (orientation: portrait)"
+        );
+        if (portraitMobile.matches && Number(speed.value) > 0.9) {
+            speed.value = "0.90";
+        }
+        function selectLayoutForViewport() {
+            setAppHeight();
+            setHitlineForViewport();
+            const isLandscape =
+                window.matchMedia && window.matchMedia("(orientation: landscape)").matches;
+            const longSide = Math.max(window.innerWidth, window.innerHeight);
+            const isTabletOrWide = longSide >= 900;
+            const blocked = isLandscape && !isTabletOrWide;
+            document.body.classList.toggle("mobile-landscape-blocked", blocked);
+            if (landscapeBlockEl)
+                landscapeBlockEl.classList.toggle("show", blocked);
+            if (blocked && document.fullscreenElement) exitFullscreen();
+
+            const target = blocked
+                ? "mobile8"
+                : portraitMobile.matches
+                    ? "mobile8"
+                    : "desktop";
+            if (target !== currentLayoutId) {
+                applyLayout(target);
+            } else {
+                syncPlayGeometry();
+            }
+        }
+        portraitMobile.addEventListener("change", selectLayoutForViewport);
+        window.addEventListener("resize", selectLayoutForViewport);
+        speed.addEventListener("input", () => {
+            speedVal.textContent = Number(speed.value).toFixed(2) + "x";
+            if (game && game.song) {
+                game.beatMsBase = 60000 / game.song.bpm;
+                game.beatMs = game.beatMsBase / Number(speed.value);
+                bgm.playbackRate = Number(speed.value);
+                if (!bgm.src && game.running && game.mode === "songs") {
+                    startSynthBgm(game.song);
+                }
+            }
+        });
+        $("#bgmVol").dispatchEvent(new Event("input"));
+
+        function buildLanesOnce() {
+            refreshLaneDom();
+        }
+        function buildFreePiano() {
+            freeWhites.innerHTML = "";
+            freeBlacks.innerHTML = "";
+            const labelsWhite = currentLayout.freeLabels.white || [];
+            const labelsBlack = currentLayout.freeLabels.black || {};
+            const whiteLanes = currentLayout.whiteLanes || WHITE_LANES;
+            const blackLanes = currentLayout.blackLanes || BLACK_LANES;
+            const whiteCount = whiteLanes.length;
+            for (let i = 0; i < whiteCount; i++) {
+                const lane = whiteLanes[i];
+                const w = document.createElement("div");
+                w.className = "wkey";
+                w.dataset.lane = lane;
+                w.textContent = labelsWhite[i] || "";
+                w.addEventListener("pointerdown", () => {
+                    ensureAudio();
+                    judge(lane);
+                });
+                freeWhites.appendChild(w);
+            }
+            const whiteWPercent = 100 / Math.max(1, whiteCount);
+            blackLanes.forEach((b, idx) => {
+                const slot = Math.min(whiteCount - 1, idx);
+                const center = slot * whiteWPercent + whiteWPercent * 0.72;
+                const bw = whiteWPercent * 0.6;
+                const left = center - bw / 2;
+                const bk = document.createElement("div");
+                bk.className = "bkey";
+                bk.dataset.lane = b;
+                bk.style.left = left + "%";
+                bk.style.width = bw + "%";
+                bk.textContent = labelsBlack[b] || "";
+                bk.addEventListener("pointerdown", (e) => {
+                    e.stopPropagation();
+                    ensureAudio();
+                    judge(b);
+                });
+                freeBlacks.appendChild(bk);
+            });
+        }
+
+        function applyLayout(id) {
+            if (!LAYOUTS[id]) id = "desktop";
+            currentLayoutId = id;
+            currentLayout = LAYOUTS[id];
+            keyMap = { ...currentLayout.keyMap };
+            refreshLaneDom();
+            buildFreePiano();
+            syncPlayGeometry();
+            if (game) {
+                const song = game.song || SONGS[0];
+                const mode = game.mode;
+                const wasRunning = game.running;
+                reset(mode === "free" ? null : song, mode);
+                if (wasRunning && mode === "songs") start();
+            }
+        }
+
+        function runCountdown(cb) {
+            let seq = ["3", "2", "1", "喵！"];
+            let idx = 0;
+            countdownEl.style.display = "flex";
+            countdownEl.textContent = seq[idx];
+            countdownEl.classList.add("show");
+            const timer = setInterval(() => {
+                idx++;
+                if (idx >= seq.length) {
+                    clearInterval(timer);
+                    countdownEl.classList.remove("show");
+                    countdownEl.style.display = "none";
+                    cb();
+                    return;
+                }
+                countdownEl.textContent = seq[idx];
+                countdownEl.classList.remove("show");
+                void countdownEl.offsetWidth;
+                countdownEl.classList.add("show");
+            }, 420);
+        }
+
+        function reset(song, mode = "songs") {
+            clearTimeout(endTimer);
+            if (bgmStopTimer) {
+                clearTimeout(bgmStopTimer);
+                bgmStopTimer = null;
+            }
+            stopSynthBgm();
+            try {
+                bgm.pause();
+            } catch (e) { }
+            tileMap.forEach((el) => el.remove());
+            tileMap.clear();
+            const mappedSeq = song ? mapSeqForLayout(song.seq) : [];
+            game = {
+                mode,
+                song,
+                beatMsBase: song ? 60000 / song.bpm : 500,
+                beatMs: song ? 60000 / song.bpm / Number(speed.value) : 500,
+                t0: 0,
+                running: false,
+                judged: song ? new Array(mappedSeq.length).fill(false) : [],
+                score: 0,
+                combo: 0,
+                maxCombo: 0,
+                counts: { perfect: 0, great: 0, good: 0, miss: 0 },
+                drawn: new Set(),
+                seq: mappedSeq,
+            };
+            autoOffset = 0;
+            autoSamples = [];
+            freeStartTime = null;
+            freeLastHit = null;
+            freeHitCount = 0;
+
+            $("#score").textContent = "0";
+            $("#combo").textContent = "0";
+            $("#acc").textContent = "0%";
+            resultEl.classList.remove("show");
+            judgeEl.className = "judge";
+            for (const lane of lanesEl.children) lane.innerHTML = "";
+            if (tileMap.size) {
+                tileMap.forEach((el) => el.remove());
+                tileMap.clear();
+            }
+
+            const isFree = mode === "free";
+            $("#songWrap").style.display = isFree ? "none" : "inline-flex";
+            freePianoEl.style.display = isFree ? "block" : "none";
+            updateSongInfo(song && !isFree ? song : null);
+
+            if (isFree) playEl.classList.add("free-mode");
+            else playEl.classList.remove("free-mode");
+
+            if (song?.bgmFile) {
+                bgm.src = `assets/bgm/${song.bgmFile}`;
+            } else {
+                bgm.removeAttribute("src");
+            }
+            bgm.volume = Number($("#bgmVol").value);
+            bgm.playbackRate = Number(speed.value);
+        }
+
+        function startGameInternal() {
+            if (!game) reset(SONGS[0], "songs");
+            game.t0 = performance.now();
+            game.running = true;
+            $("#btnPause").disabled = false;
+            $("#btnRestart").disabled = false;
+            $("#btnStart").disabled = true;
+
+            if (game.mode === "songs" && game.song) {
+                startBgm(game.song);
+                const lengthMs =
+                    game.seq.length * game.beatMs + CONFIG.WIN.good + 1200;
+                endTimer = setTimeout(() => game.running && finish(), lengthMs);
+                loop();
+            }
+        }
+
+        function start() {
+            ensureAudio();
+            if (!game) reset(SONGS[0], "songs");
+
+            if (game.mode === "songs" && game.song) {
+                game.running = false;
+                runCountdown(() => {
+                    startGameInternal();
+                });
+            } else {
+                startGameInternal();
+            }
+        }
+
+        function pause() {
+            if (!game?.running) return;
+            game.running = false;
+            game.pausedAt = performance.now();
+            $("#btnPause").textContent = "▶️";
+            try {
+                bgm.pause();
+            } catch (e) { }
+            stopSynthBgm();
+        }
+
+        function resume() {
+            if (game.running) return;
+            game.running = true;
+            const d = performance.now() - game.pausedAt;
+            game.t0 += d;
+            $("#btnPause").textContent = "⏸";
+            try {
+                bgm.play().catch(() => { });
+            } catch (e) { }
+            if (game.mode === "songs" && game.song && !bgm.src) {
+                startSynthBgm(game.song);
+            }
+            if (game.mode === "songs") loop();
+        }
+
+        function restart() {
+            if (!game) return;
+            reset(game.song, game.mode);
+            start();
+        }
+
+        function now() {
+            return performance.now();
+        }
+        function currentBeatIndex(t) {
+            if (!game?.song) return -1;
+            return Math.floor(Math.max(0, t) / game.beatMs);
+        }
+        function yForPhase(phase) {
+            const p = Math.min(1, Math.max(0, phase));
+            return Math.min(CONFIG.HIT_Y, p * CONFIG.HIT_Y);
+        }
+
+        function loop() {
+            if (!game?.running || game.mode !== "songs") return;
+            const t = now() - game.t0;
+            draw(t);
+            autoMiss(t);
+            requestAnimationFrame(loop);
+        }
+
+        function draw(t) {
+            if (game.mode !== "songs" || !game.song) return;
+            const baseIdx = currentBeatIndex(t);
+            const nextVisible = new Set();
+            const minIdx = Math.max(0, baseIdx - 1);
+            const maxIdx = Math.min(game.seq.length - 1, baseIdx + CONFIG.LEAD);
+            for (let idx = minIdx; idx <= maxIdx; idx++) {
+                const laneIdx = game.seq[idx];
+                if (laneIdx < 0) continue;
+                if (game.judged[idx]) {
+                    removeTile(idx);
+                    continue;
+                }
+                const phase = (t - idx * game.beatMs) / game.beatMs;
+                const y = yForPhase(phase);
+                if (y < -CONFIG.TILE_H || y > CONFIG.HIT_Y + CONFIG.TILE_H) continue;
+                game.drawn.add(idx);
+                let d = tileMap.get(idx);
+                if (!d) {
+                    d = document.createElement("div");
+                    d.className = "tile";
+                    d.dataset.idx = idx;
+                    d.dataset.lane = laneIdx;
+                    d.addEventListener("pointerdown", (e) => {
+                        e.stopPropagation();
+                        judge(laneIdx, idx);
+                    });
+                    const laneEl = lanesEl.querySelector(
+                        `.lane[data-lane="${laneIdx}"]`
+                    );
+                    if (laneEl) laneEl.appendChild(d);
+                    tileMap.set(idx, d);
+                }
+                d.style.top = y + "px";
+                nextVisible.add(idx);
+            }
+            tileMap.forEach((el, idx) => {
+                if (!nextVisible.has(idx)) {
+                    el.remove();
+                    tileMap.delete(idx);
+                }
+            });
+        }
+
+        function removeTile(idx) {
+            const el = tileMap.get(idx);
+            if (el) {
+                el.remove();
+                tileMap.delete(idx);
+            }
+        }
+
+        function autoMiss(t) {
+            if (game.mode !== "songs" || !game.song) return;
+            const idx = currentBeatIndex(t);
+            const prev = idx - 1;
+            if (prev >= 0 && !game.judged[prev]) {
+                if (!game.drawn.has(prev)) return;
+                const endTime = (prev + 1) * game.beatMs;
+                const late = t - autoOffset - endTime;
+                if (late > CONFIG.WIN.good + 40) {
+                    game.judged[prev] = true;
+                    removeTile(prev);
+                    addScore("miss");
+                    showJudge("MISS", "miss");
+                }
+            }
+            if (game.judged.length && game.judged.every(Boolean)) finish();
+        }
+
+        function triggerComboEffect(combo) {
+            let text = "";
+            if (combo === 20) text = "喵喵節奏起飛！20 Combo";
+            else if (combo === 50) text = "貓掌覺醒！50 Combo";
+            else if (combo === 100) text = "傳說級貓掌！100 Combo";
+            else return;
+
+            comboLabelEl.textContent = text;
+            comboLabelEl.classList.remove("show");
+            void comboLabelEl.offsetWidth;
+            comboLabelEl.classList.add("show");
+
+            playEl.classList.add("combo-flash");
+            setTimeout(() => playEl.classList.remove("combo-flash"), 280);
+        }
+
+        function showJudge(text, cls) {
+            judgeEl.textContent = text;
+            judgeEl.className = "judge";
+            if (cls) judgeEl.classList.add(cls);
+            void judgeEl.offsetWidth;
+            judgeEl.classList.add("show");
+            setTimeout(() => judgeEl.classList.remove("show"), 220);
+        }
+
+        function updateHUD() {
+            const t = game.counts;
+            const total = t.perfect + t.great + t.good + t.miss;
+            const acc = total
+                ? ((t.perfect + t.great * 0.8 + t.good * 0.5) / total) * 100
+                : 0;
+            $("#acc").textContent = acc.toFixed(1) + "%";
+            $("#score").textContent = game.score;
+            $("#combo").textContent = game.combo;
+            const sp = $("#scorePill");
+            sp.classList.add("flash");
+            setTimeout(() => sp.classList.remove("flash"), 300);
+        }
+
+        function trackFreePlay() {
+            const t = performance.now();
+            if (!freeStartTime) {
+                freeStartTime = t;
+                freeHitCount = 0;
+            }
+            freeHitCount++;
+            freeLastHit = t;
+            if (freeHitCount >= 30) completeQuest("Q10_free30");
+            if (freeHitCount >= 50) completeQuest("Q33_free50");
+            if (freeLastHit - freeStartTime >= 45000)
+                completeQuest("Q20_creative45");
+            if (freeLastHit - freeStartTime >= 90000) completeQuest("Q34_free90");
+        }
+
+        function evalHitAt(idx, t) {
+            if (idx < 0 || idx >= game.seq.length) return null;
+            if (game.judged[idx]) return null;
+            if (!game.drawn.has(idx)) return null;
+            const lane = Number(game.seq[idx]);
+            if (Number.isNaN(lane)) return null;
+            const targetT = (idx + 1) * game.beatMs;
+            const dt = t - targetT;
+            const ad = Math.abs(dt);
+            return { idx, lane, dt, ad };
+        }
+
+        function findHitCandidate(t, laneInputNum, idxHint) {
+            if (idxHint !== null && idxHint !== undefined) {
+                return evalHitAt(Number(idxHint), t);
+            }
+            const baseIdx = currentBeatIndex(t + autoOffset);
+            let best = null;
+            for (let offset = -1; offset <= 1; offset++) {
+                const cand = evalHitAt(baseIdx + offset, t);
+                if (!cand || cand.lane !== laneInputNum) continue;
+                if (!best || cand.ad < best.ad) best = cand;
+            }
+            return best;
+        }
+
+        function handleHit(best, laneInputNum) {
+            const laneNum = best.lane;
+            if (Number.isNaN(laneNum)) return;
+            if (laneNum < 0) {
+                addScore("miss");
+                game.judged[best.idx] = true;
+                removeTile(best.idx);
+                showJudge("MISS", "miss");
+                return;
+            }
+
+            const ad = best.ad;
+            let r = "miss";
+            if (ad <= CONFIG.WIN.perfect) r = "perfect";
+            else if (ad <= CONFIG.WIN.great) r = "great";
+            else if (ad <= CONFIG.WIN.good) r = "good";
+            if (laneInputNum !== laneNum) r = "miss";
+
+            if (r === "miss") {
+                addScore("miss");
+                showJudge("MISS", "miss");
+            } else {
+                addScore(r);
+                showJudge(r.toUpperCase(), r);
+                ensureAudio();
+                playSynthByLane(laneNum, 0.18);
+                flashFreeKey(laneNum);
+                if ([20, 50, 100].includes(game.combo)) {
+                    triggerComboEffect(game.combo);
+                }
+                autoSamples.push(best.dt);
+                if (autoSamples.length > AUTO_MAX_SAMPLES) autoSamples.shift();
+                const avg =
+                    autoSamples.reduce((a, b) => a + b, 0) / autoSamples.length;
+                autoOffset = Math.max(-120, Math.min(120, Math.round(avg)));
+            }
+
+            game.judged[best.idx] = true;
+            removeTile(best.idx);
+            if (game.judged.every(Boolean)) finish();
+        }
+
+        function judge(laneInput, idxHint = null) {
+            if (!game) return;
+
+            // 自由彈奏
+            if (game.mode === "free") {
+                ensureAudio();
+                playSynthByLane(laneInput, 0.18);
+                flashFreeKey(laneInput);
+                trackFreePlay();
+                return;
+            }
+
+            if (!game.running || game.mode !== "songs") return;
+
+            const t = now() - game.t0 - autoOffset;
+            const laneInputNum = Number(laneInput);
+            if (Number.isNaN(laneInputNum)) return;
+
+            const best = findHitCandidate(t, laneInputNum, idxHint);
+            // 空鍵 / 超出判定範圍：忽略，不記 Miss，避免後續自動 Miss 重複累計
+            if (!best) return;
+            handleHit(best, laneInputNum);
+        }
+
+        function addScore(r) {
+            if (r === "miss") {
+                game.combo = 0;
+                game.counts.miss++;
+            } else {
+                game.combo++;
+                game.maxCombo = Math.max(game.maxCombo, game.combo);
+                game.counts[r]++;
+                game.score += (SCOREMAP[r] || 0) + Math.floor(game.combo * 0.6);
+            }
+            updateHUD();
+        }
+
+        function flashFreeKey(lane) {
+            const el = freePianoEl.querySelector(`[data-lane="${lane}"]`);
+            if (!el) return;
+            el.classList.add("active");
+            setTimeout(() => el.classList.remove("active"), 120);
+        }
+
+        function checkQuestsOnFinish() {
+            const t = game.counts;
+            const total = t.perfect + t.great + t.good + t.miss;
+            const acc = total
+                ? ((t.perfect + t.great * 0.8 + t.good * 0.5) / total) * 100
+                : 0;
+            const accInt = Math.round(acc);
+            const s = game.score;
+            const m = t.miss;
+            const mc = game.maxCombo;
+            const id = game.song?.id || null;
+            const spd = Number(speed.value);
+
+            if (s > 0) completeQuest("Q1_first_clear");
+            if (s >= 3000) completeQuest("Q2_just_try");
+            if (accInt >= 70) completeQuest("Q3_acc70");
+            if (mc >= 20) completeQuest("Q4_combo20");
+            if (accInt >= 80 && m <= 5) completeQuest("Q5_acc80_miss5");
+            if (mc >= 40) completeQuest("Q6_combo40");
+            if (s >= 10000) completeQuest("Q21_score10000");
+            if (s >= 12000) completeQuest("Q22_score12000");
+            if (accInt >= 85) completeQuest("Q23_acc85");
+            if (accInt >= 90 && m <= 2) completeQuest("Q24_acc90_miss2");
+            if (mc >= 60) completeQuest("Q25_combo60");
+            if (mc >= 70 && spd >= 1.2) completeQuest("Q26_combo70_speed12");
+            if (id === "smooth_electro" && s >= 8000)
+                completeQuest("Q7_smooth8000");
+            if (id === "summer_pop" && accInt >= 82) completeQuest("Q8_summer82");
+
+            const chainKey = "mew_chain_acc75";
+            const prevOk = storage.get(chainKey) === "1";
+            if (accInt >= 75) {
+                if (prevOk) completeQuest("Q9_two_75");
+                storage.set(chainKey, "1");
+            } else {
+                storage.set(chainKey, "0");
+            }
+
+            const chainKey90 = "mew_chain_acc90";
+            const prev90 = storage.get(chainKey90) === "1";
+            if (accInt >= 90) {
+                if (prev90) completeQuest("Q32_two_90");
+                storage.set(chainKey90, "1");
+            } else {
+                storage.set(chainKey90, "0");
+            }
+
+            if (spd >= 1.2 && s >= 9000) completeQuest("Q11_speed12_score");
+            if (spd >= 1.4 && accInt >= 78) completeQuest("Q12_speed14_acc");
+            if (spd >= 1.3 && m === 0) completeQuest("Q27_speed13_nomiss");
+            if (spd >= 1.55 && accInt >= 85) completeQuest("Q28_speed16_clear");
+
+            if (m === 0) completeQuest("Q13_no_miss");
+            if (t.perfect >= 60 && accInt >= 88)
+                completeQuest("Q14_perfect60_acc88");
+            if (mc >= 80) completeQuest("Q15_combo80");
+            if (t.good === 0 && total > 0) completeQuest("Q31_no_good");
+
+            if (id === "midnight_pulse" && spd >= 1.25 && accInt >= 85)
+                completeQuest("Q16_midnight");
+            if (id === "tech_vlog" && accInt >= 85)
+                completeQuest("Q29_techvlog_acc85");
+            if (id === "future_bass_light" && s >= 9500)
+                completeQuest("Q30_futurebass_9500");
+
+            if (id && id !== "free" && s >= 8000) {
+                const key = "mew_multi_8000";
+                const arr = readJSON(key, []);
+                if (!arr.includes(id)) {
+                    arr.push(id);
+                    writeJSON(key, arr);
+                }
+                if (arr.length >= 5) completeQuest("Q17_five_songs");
+            }
+            if (id && id !== "free" && s >= 10000) {
+                const key = "mew_multi_10000";
+                const arr = readJSON(key, []);
+                if (!arr.includes(id)) {
+                    arr.push(id);
+                    writeJSON(key, arr);
+                }
+                if (arr.length >= 3) completeQuest("Q35_three_10000");
+            }
+
+            if (id && id !== "free") {
+                const pk = "mew_songs_played";
+                const ak = "mew_songs_acc85";
+                const played = new Set(readJSON(pk, []));
+                played.add(id);
+                writeJSON(pk, [...played]);
+                if (accInt >= 85) {
+                    const good = new Set(readJSON(ak, []));
+                    good.add(id);
+                    writeJSON(ak, [...good]);
+                }
+                const playedCount = JSON.parse(
+                    storage.get(pk) || "[]"
+                ).length;
+                const goodCount = JSON.parse(storage.get(ak) || "[]").length;
+                if (playedCount >= 10 && goodCount >= 3)
+                    completeQuest("Q18_allround");
+            }
+
+            if (spd >= 1.5 && m === 0 && accInt >= 90) completeQuest("Q19_master");
+        }
+
+        const encouragements = [
+            "喵～這個節奏很可以，再試試更快的速度？",
+            "完美貓掌出現了，再疊高一點 Combo！",
+            "穩穩的，很有音樂感，再挑戰一首不同風格看看？",
+            "這手感如果被看到會被簽走喔（誇）。",
+        ];
+
+        function finish() {
+            if (!game) return;
+            game.running = false;
+            stopAllBgm();
+
+            const t = game.counts;
+            const total = t.perfect + t.great + t.good + t.miss;
+            const acc = total
+                ? Math.round(
+                    ((t.perfect + t.great * 0.8 + t.good * 0.5) / total) * 100
+                )
+                : 0;
+
+            const store = readJSON(STORE_KEY, {});
+            store.high = store.high || {};
+            const speedVal = Number(speed.value).toFixed(2);
+            const songKey = game.song?.id || "free";
+            const key = `song_${songKey}_${speedVal}`;
+            const prev = store.high[key]?.score || 0;
+            const bestScore = Math.max(prev, game.score);
+            const nowStr = todayStr();
+            store.high[key] = {
+                score: bestScore,
+                acc,
+                date: nowStr,
+                speed: speedVal,
+                songId: songKey,
+            };
+            writeJSON(STORE_KEY, store);
+
+            $("#rScore").textContent = game.score;
+            const bestEntry =
+                store.high[key] ||
+                store.high[`song_${songKey}`] || { score: bestScore, date: nowStr };
+            const speedSuffix = bestEntry.speed ? ` @${bestEntry.speed}x` : "";
+            $("#rBest").textContent = `${bestEntry.score}（${bestEntry.date}${speedSuffix}）`;
+            $("#rAcc").textContent = acc + "%";
+            $("#rCombo").textContent = game.maxCombo;
+            $("#rP").textContent = t.perfect;
+            $("#rG").textContent = t.great;
+            $("#rO").textContent = t.good;
+            $("#rM").textContent = t.miss;
+
+            updateLeaderboard({
+                score: game.score,
+                acc,
+                songId: game.song?.id || "",
+                songName: game.song?.name || "自由彈奏",
+                speed: Number(speed.value).toFixed(2) + "x",
+                date: nowStr,
+            });
+
+            checkQuestsOnFinish();
+
+            const msg =
+                encouragements[Math.floor(Math.random() * encouragements.length)];
+            resultNoteEl.innerHTML = `<span>喵評：</span>${msg}`;
+
+            resultEl.classList.add("show");
+            focusModal(resultEl);
+            $("#btnStart").disabled = false;
+            $("#btnPause").disabled = true;
+            $("#btnRestart").disabled = false;
+            $("#btnPause").textContent = "⏸";
+            refreshBest();
+        }
+
+        function refreshBest() {
+            const store = readJSON(STORE_KEY, {});
+            const songKey = game?.song?.id || "free";
+            const speedVal = Number(speed.value).toFixed(2);
+            const key = `song_${songKey}_${speedVal}`;
+            const val =
+                store.high?.[key]?.score ||
+                store.high?.[`song_${songKey}`]?.score ||
+                0;
+            bestEl.textContent = val;
+        }
+
+        const modalEls = [
+            resultEl,
+            missionsPanelEl,
+            rankPanelEl,
+            judgePanelEl,
+            settingsPanelEl,
+        ];
+        modalEls.forEach((el) => {
+            if (!el) return;
+            el.setAttribute("role", "dialog");
+            el.setAttribute("tabindex", "-1");
+        });
+        function focusModal(el) {
+            try {
+                el?.focus({ preventScroll: true });
+            } catch (e) { }
+        }
+        function closeOpenModal() {
+            if (resultEl.classList.contains("show")) resultEl.classList.remove("show");
+            if (missionsPanelEl.classList.contains("show"))
+                missionsPanelEl.classList.remove("show");
+            if (rankPanelEl.classList.contains("show"))
+                rankPanelEl.classList.remove("show");
+            if (judgePanelEl.classList.contains("show"))
+                judgePanelEl.classList.remove("show");
+            if (settingsPanelEl.classList.contains("show"))
+                settingsPanelEl.classList.remove("show");
+            if (startOverlayEl && startOverlayEl.style.display !== "none") {
+                startOverlayEl.style.display = "none";
+            }
+        }
+        function isModalOpen() {
+            const overlayVisible = startOverlayEl?.style.display !== "none";
+            const blocked =
+                landscapeBlockEl?.classList.contains("show") || false;
+            return (
+                overlayVisible ||
+                blocked ||
+                resultEl.classList.contains("show") ||
+                missionsPanelEl.classList.contains("show") ||
+                rankPanelEl.classList.contains("show") ||
+                judgePanelEl.classList.contains("show") ||
+                settingsPanelEl.classList.contains("show")
+            );
+        }
+
+        /* 綁定 */
+        $("#btnStart").addEventListener("click", () => {
+            const mode = $("#modeSel").value;
+            const song =
+                mode === "free"
+                    ? null
+                    : SONGS.find((s) => s.id === songSel.value) || SONGS[0];
+            reset(song, mode);
+            start();
+            refreshBest();
+        });
+        $("#btnPause").addEventListener("click", () => {
+            if (!game) return;
+            if (game.running) pause();
+            else resume();
+        });
+        $("#btnRestart").addEventListener("click", restart);
+        btnToggleUI?.addEventListener("click", () => {
+            const on = !document.body.classList.contains("compact-ui");
+            applyCompactUI(on);
+        });
+        btnFullscreen?.addEventListener("click", (e) => {
+            e.preventDefault();
+            toggleFullscreen();
+        });
+        document.addEventListener("fullscreenchange", () => {
+            const on = Boolean(document.fullscreenElement);
+            document.body.classList.toggle("fullscreen-active", on);
+            updateFullscreenBtn();
+            syncPlayGeometry();
+            setAppHeight();
+        });
+        window.addEventListener("orientationchange", () => {
+            syncPlayGeometry();
+            setAppHeight();
+            setHitlineForViewport();
+        });
+        $("#btnAgain").addEventListener("click", (e) => {
+            e.stopPropagation();
+            resultEl.classList.remove("show");
+            restart();
+        });
+        $("#btnClose").addEventListener("click", (e) => {
+            e.stopPropagation();
+            resultEl.classList.remove("show");
+        });
+
+        $("#btnChangeSong").addEventListener("click", (e) => {
+            e.stopPropagation();
+            resultEl.classList.remove("show");
+            const currentId = game?.song?.id || songSel.value;
+            const idx = SONGS.findIndex((s) => s.id === currentId);
+            const nextIdx = (idx + 1) % SONGS.length;
+            const nextSong = SONGS[nextIdx];
+            songSel.value = nextSong.id;
+            reset(nextSong, "songs");
+            refreshBest();
+            start();
+        });
+
+        $("#btnSpeedUp").addEventListener("click", (e) => {
+            e.stopPropagation();
+            let spd = Number(speed.value);
+            spd = Math.min(1.6, spd + 0.2);
+            speed.value = spd.toFixed(2);
+            speed.dispatchEvent(new Event("input"));
+            resultEl.classList.remove("show");
+            reset(game?.song || SONGS[0], "songs");
+            refreshBest();
+            start();
+        });
+
+        $("#modeSel").addEventListener("change", () => {
+            const mode = $("#modeSel").value;
+            reset(
+                mode === "free"
+                    ? null
+                    : SONGS.find((s) => s.id === songSel.value) || SONGS[0],
+                mode
+            );
+        });
+        songSel.addEventListener("change", () => {
+            if (game?.running) pause();
+            reset(
+                SONGS.find((s) => s.id === songSel.value) || SONGS[0],
+                "songs"
+            );
+            refreshBest();
+        });
+
+        window.addEventListener("keydown", (e) => {
+            const tag = e.target?.tagName?.toLowerCase();
+            if (["input", "select", "textarea"].includes(tag)) return;
+            if (e.key === "Escape") {
+                if (isModalOpen()) {
+                    e.preventDefault();
+                    closeOpenModal();
+                }
+                return;
+            }
+            if (isModalOpen()) return;
+            const k = e.key.toLowerCase();
+            if (k in keyMap) {
+                ensureAudio();
+                e.preventDefault();
+                judge(keyMap[k]);
+            }
+        });
+
+        $("#btnMissions").addEventListener("click", () => {
+            renderQuests();
+            renderChapters();
+            missionsPanelEl.classList.add("show");
+            clearMissionsNew();
+            focusModal(missionsPanelEl);
+        });
+        $("#btnCloseMissions").addEventListener("click", () => {
+            missionsPanelEl.classList.remove("show");
+        });
+        missionsPanelEl.addEventListener("click", (e) => {
+            if (e.target === missionsPanelEl)
+                missionsPanelEl.classList.remove("show");
+        });
+
+        $("#btnRank").addEventListener("click", () => {
+            renderLeaderboard();
+            rankPanelEl.classList.add("show");
+            focusModal(rankPanelEl);
+        });
+        $("#btnCloseRank").addEventListener("click", () => {
+            rankPanelEl.classList.remove("show");
+        });
+        rankPanelEl.addEventListener("click", (e) => {
+            if (e.target === rankPanelEl) rankPanelEl.classList.remove("show");
+        });
+
+        $("#btnJudgeInfo").addEventListener("click", () => {
+            judgePanelEl.classList.add("show");
+            focusModal(judgePanelEl);
+        });
+        $("#btnCloseJudge").addEventListener("click", () => {
+            judgePanelEl.classList.remove("show");
+        });
+        judgePanelEl.addEventListener("click", (e) => {
+            if (e.target === judgePanelEl) judgePanelEl.classList.remove("show");
+        });
+
+        $("#btnSettings").addEventListener("click", () => {
+            settingsPanelEl.classList.add("show");
+            focusModal(settingsPanelEl);
+        });
+        $("#btnCloseSettings").addEventListener("click", () => {
+            settingsPanelEl.classList.remove("show");
+        });
+        settingsPanelEl.addEventListener("click", (e) => {
+            if (e.target === settingsPanelEl)
+                settingsPanelEl.classList.remove("show");
+        });
+
+        $("#btnStartNow").addEventListener("click", () => {
+            startOverlayEl.style.display = "none";
+            const mode = "songs";
+            const song = SONGS[0];
+            reset(song, mode);
+            start();
+            refreshBest();
+        });
+        $("#btnJustView").addEventListener("click", () => {
+            startOverlayEl.style.display = "none";
+        });
+
+        (function init() {
+            initHintToggle();
+            selectLayoutForViewport();
+            buildLanesOnce();
+            applyLayout(currentLayoutId);
+            updateFullscreenBtn();
+            setAppHeight();
+            reset(SONGS[0], "songs");
+            speed.dispatchEvent(new Event("input"));
+            renderQuests();
+            renderChapters();
+        })();
+    </script>
+    <!-- Code injected by live-server -->
+    <script>
+        // <![CDATA[  <-- For SVG support
+        if ("WebSocket" in window) {
+            (function () {
+                function refreshCSS() {
+                    var sheets = [].slice.call(document.getElementsByTagName("link"));
+                    var head = document.getElementsByTagName("head")[0];
+                    for (var i = 0; i < sheets.length; ++i) {
+                        var elem = sheets[i];
+                        var parent = elem.parentElement || head;
+                        parent.removeChild(elem);
+                        var rel = elem.rel;
+                        if (
+                            (elem.href && typeof rel != "string") ||
+                            rel.length == 0 ||
+                            rel.toLowerCase() == "stylesheet"
+                        ) {
+                            var url = elem.href.replace(/(&|\?)_cacheOverride=\d+/, "");
+                            elem.href =
+                                url +
+                                (url.indexOf("?") >= 0 ? "&" : "?") +
+                                "_cacheOverride=" +
+                                new Date().valueOf();
+                        }
+                        parent.appendChild(elem);
+                    }
+                }
+                var protocol =
+                    window.location.protocol === "http:" ? "ws://" : "wss://";
+                var address =
+                    protocol + window.location.host + window.location.pathname + "/ws";
+                var socket = new WebSocket(address);
+                socket.onmessage = function (msg) {
+                    if (msg.data == "reload") window.location.reload();
+                    else if (msg.data == "refreshcss") refreshCSS();
+                };
+                if (
+                    sessionStorage &&
+                    !sessionStorage.getItem("IsThisFirstTime_Log_From_LiveServer")
+                ) {
+                    console.log("Live reload enabled.");
+                    sessionStorage.setItem("IsThisFirstTime_Log_From_LiveServer", true);
+                }
+            })();
+        } else {
+            console.error(
+                "Upgrade your browser. This Browser is NOT supported WebSocket for Live-Reloading."
+            );
+        }
+        // ]]>
+    </script>
+</body>
+
+</html>
