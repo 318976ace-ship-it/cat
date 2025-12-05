@@ -1577,6 +1577,10 @@
             .hitline {
                 bottom: var(--hitline-bottom);
             }
+
+            .hud {
+                display: none;
+            }
         }
 
         /* 全螢幕滿版：減少邊距、讓 play 占滿可用高度 */
@@ -1628,12 +1632,6 @@
 
         body.fullscreen-active .fullscreen-controls {
             display: flex;
-        }
-
-        @media (max-width: 820px) {
-            .fullscreen-controls {
-                display: flex;
-            }
         }
 
         .landscape-block {
@@ -2079,6 +2077,7 @@
             hintToggleBtn = $("#btnToggleHints"),
             btnToggleUI = $("#btnToggleUI"),
             btnFullscreen = $("#btnFullscreen"),
+            fsControls = document.querySelector(".fullscreen-controls"),
             landscapeBlockEl = $("#landscapeBlock");
 
         /* localStorage 安全封裝 */
@@ -2221,6 +2220,15 @@
             if (fsPauseBtn) fsPauseBtn.textContent = text;
         }
 
+        function updateFsControls() {
+            if (!fsControls) return;
+            const overlayVisible = startOverlayEl && startOverlayEl.style.display !== "none";
+            const isFullscreen =
+                document.fullscreenElement ||
+                document.body.classList.contains("fullscreen-active");
+            fsControls.style.display = isFullscreen && !overlayVisible ? "flex" : "none";
+        }
+
         function setAppHeight() {
             const h =
                 (window.visualViewport && window.visualViewport.height) ||
@@ -2246,6 +2254,7 @@
                 syncPlayGeometry();
                 setHitlineForViewport();
             }
+            updateFsControls();
             try {
                 if (screen.orientation?.lock) {
                     const current = screen.orientation.type || "";
@@ -2265,6 +2274,7 @@
             }
             syncPlayGeometry();
             setHitlineForViewport();
+            updateFsControls();
         }
 
         function toggleFullscreen() {
@@ -4355,6 +4365,7 @@
             syncPlayGeometry();
             setAppHeight();
             setHitlineForViewport();
+            updateFsControls();
         });
         window.addEventListener("orientationchange", () => {
             syncPlayGeometry();
@@ -4485,6 +4496,7 @@
 
         $("#btnStartNow").addEventListener("click", () => {
             startOverlayEl.style.display = "none";
+            updateFsControls();
             const mode = "songs";
             const song = SONGS[0];
             reset(song, mode);
@@ -4493,6 +4505,7 @@
         });
         $("#btnJustView").addEventListener("click", () => {
             startOverlayEl.style.display = "none";
+            updateFsControls();
         });
 
         (function init() {
@@ -4506,6 +4519,7 @@
             speed.dispatchEvent(new Event("input"));
             renderQuests();
             renderChapters();
+            updateFsControls();
         })();
     </script>
     <!-- Code injected by live-server -->
