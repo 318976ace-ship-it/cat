@@ -1617,6 +1617,19 @@
             top: 8px;
         }
 
+        .fullscreen-controls {
+            position: fixed;
+            right: 12px;
+            bottom: 12px;
+            display: none;
+            gap: 8px;
+            z-index: 120;
+        }
+
+        body.fullscreen-active .fullscreen-controls {
+            display: flex;
+        }
+
         .landscape-block {
             position: fixed;
             inset: 0;
@@ -1670,6 +1683,18 @@
                 手機橫向已暫停，請轉回直立或關閉旋轉鎖。平板仍可橫向彈奏。
             </div>
         </div>
+    </div>
+    <!-- Fullscreen Controls -->
+    <div class="fullscreen-controls" aria-label="全螢幕控制">
+        <button id="fsStart" class="secondary icon-button" title="開始">
+            ▶️
+        </button>
+        <button id="fsPause" class="secondary icon-button" title="暫停 / 繼續" disabled>
+            ⏸
+        </button>
+        <button id="fsRestart" class="secondary icon-button" title="重來" disabled>
+            🔁
+        </button>
     </div>
     <!-- Start Overlay -->
     <div id="startOverlay" class="start-overlay">
@@ -2037,6 +2062,12 @@
             songSel = $("#songSel"),
             speed = $("#speed"),
             speedVal = $("#speedVal"),
+            btnStart = $("#btnStart"),
+            btnPause = $("#btnPause"),
+            btnRestart = $("#btnRestart"),
+            fsStartBtn = $("#fsStart"),
+            fsPauseBtn = $("#fsPause"),
+            fsRestartBtn = $("#fsRestart"),
             btnMissionsEl = $("#btnMissions"),
             hintColumnEl = $("#hintColumn"),
             hintToggleBtn = $("#btnToggleHints"),
@@ -2168,6 +2199,20 @@
                 "aria-label",
                 on ? "退出全螢幕回正常模式" : "切換全螢幕模式"
             );
+        }
+
+        function updateControlDisabled(startDisabled, pauseDisabled, restartDisabled) {
+            if (btnStart) btnStart.disabled = startDisabled;
+            if (fsStartBtn) fsStartBtn.disabled = startDisabled;
+            if (btnPause) btnPause.disabled = pauseDisabled;
+            if (fsPauseBtn) fsPauseBtn.disabled = pauseDisabled;
+            if (btnRestart) btnRestart.disabled = restartDisabled;
+            if (fsRestartBtn) fsRestartBtn.disabled = restartDisabled;
+        }
+
+        function updatePauseLabel(text) {
+            if (btnPause) btnPause.textContent = text;
+            if (fsPauseBtn) fsPauseBtn.textContent = text;
         }
 
         function setAppHeight() {
@@ -3496,7 +3541,8 @@
                 document.body.classList.contains("fullscreen-active");
             const isLandscape =
                 window.matchMedia && window.matchMedia("(orientation: landscape)").matches;
-            const upperCap = isFullscreen && isLandscape ? ph * 0.68 : ph * 0.78;
+            // 全螢幕與一般模式統一落點比例，避免判定線上移
+            const upperCap = isLandscape ? ph * 0.78 : ph * 0.82;
             const target = Math.min(
                 upperCap,
                 ph - hitlineBottom - tileSize * 0.25
@@ -3710,9 +3756,8 @@
             if (!game) reset(SONGS[0], "songs");
             game.t0 = performance.now();
             game.running = true;
-            $("#btnPause").disabled = false;
-            $("#btnRestart").disabled = false;
-            $("#btnStart").disabled = true;
+            updateControlDisabled(true, false, false);
+            updatePauseLabel("⏸");
 
             if (game.mode === "songs" && game.song) {
                 startBgm(game.song);
@@ -3741,7 +3786,7 @@
             if (!game?.running) return;
             game.running = false;
             game.pausedAt = performance.now();
-            $("#btnPause").textContent = "▶️";
+            updatePauseLabel("▶️");
             try {
                 bgm.pause();
             } catch (e) { }
@@ -3753,7 +3798,7 @@
             game.running = true;
             const d = performance.now() - game.pausedAt;
             game.t0 += d;
-            $("#btnPause").textContent = "⏸";
+            updatePauseLabel("⏸");
             try {
                 bgm.play().catch(() => { });
             } catch (e) { }
@@ -3960,6 +4005,8 @@
             if (r === "miss") {
                 addScore("miss");
                 showJudge("MISS", "miss");
+                game.judged[best.idx] = true;
+                removeTile(best.idx);
             } else {
                 addScore(r);
                 showJudge(r.toUpperCase(), r);
@@ -4198,10 +4245,8 @@
 
             resultEl.classList.add("show");
             focusModal(resultEl);
-            $("#btnStart").disabled = false;
-            $("#btnPause").disabled = true;
-            $("#btnRestart").disabled = false;
-            $("#btnPause").textContent = "⏸";
+            updateControlDisabled(false, true, false);
+            updatePauseLabel("⏸");
             refreshBest();
         }
 
@@ -4264,7 +4309,7 @@
         }
 
         /* 綁定 */
-        $("#btnStart").addEventListener("click", () => {
+        function handleStartClick() {
             const mode = $("#modeSel").value;
             const song =
                 mode === "free"
@@ -4273,13 +4318,22 @@
             reset(song, mode);
             start();
             refreshBest();
-        });
-        $("#btnPause").addEventListener("click", () => {
+        }
+        function handlePauseClick() {
             if (!game) return;
             if (game.running) pause();
             else resume();
-        });
-        $("#btnRestart").addEventListener("click", restart);
+        }
+        function handleRestartClick() {
+            restart();
+        }
+
+        btnStart?.addEventListener("click", handleStartClick);
+        fsStartBtn?.addEventListener("click", handleStartClick);
+        btnPause?.addEventListener("click", handlePauseClick);
+        fsPauseBtn?.addEventListener("click", handlePauseClick);
+        btnRestart?.addEventListener("click", handleRestartClick);
+        fsRestartBtn?.addEventListener("click", handleRestartClick);
         btnToggleUI?.addEventListener("click", () => {
             const on = !document.body.classList.contains("compact-ui");
             applyCompactUI(on);
