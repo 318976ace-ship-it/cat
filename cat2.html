@@ -1474,18 +1474,18 @@
             }
         }
 
-        @media (max-width: 768px) {
-            :root {
-                --play-height: calc(88dvh - 40px);
-            }
+    @media (max-width: 768px) {
+      :root {
+        --play-height: calc(88dvh - 40px);
+      }
 
-            .tile {
-                height: 100px;
-            }
+      .tile {
+        height: var(--tile-size);
+      }
 
-            .hitline {
-                bottom: 60px;
-            }
+      .hitline {
+        bottom: var(--hitline-bottom);
+      }
 
             .grid {
                 grid-template-columns: repeat(2, 1fr);
