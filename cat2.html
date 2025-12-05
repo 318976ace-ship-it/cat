@@ -2192,6 +2192,8 @@
             } catch (e) { }
             if (!ok) {
                 document.body.classList.add("fullscreen-active");
+                syncPlayGeometry();
+                setHitlineForViewport();
             }
             try {
                 if (screen.orientation?.lock) {
@@ -2210,6 +2212,8 @@
             if (document.fullscreenElement) {
                 document.exitFullscreen().catch(() => { });
             }
+            syncPlayGeometry();
+            setHitlineForViewport();
         }
 
         function toggleFullscreen() {
@@ -4290,6 +4294,7 @@
             updateFullscreenBtn();
             syncPlayGeometry();
             setAppHeight();
+            setHitlineForViewport();
         });
         window.addEventListener("orientationchange", () => {
             syncPlayGeometry();
