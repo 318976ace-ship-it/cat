@@ -2281,13 +2281,19 @@
       if (fsPauseBtn) fsPauseBtn.textContent = text;
     }
 
+    function currentMode() {
+      return (modeSel?.value || game?.mode || "songs").toLowerCase();
+    }
+
     function updateFsControls() {
       if (!fsControls) return;
       const overlayVisible = startOverlayEl && startOverlayEl.style.display !== "none";
       const isFullscreen =
         document.fullscreenElement ||
         document.body.classList.contains("fullscreen-active");
-      fsControls.style.display = isFullscreen && !overlayVisible ? "flex" : "none";
+      const mode = currentMode();
+      const show = isFullscreen && !overlayVisible && mode !== "free";
+      fsControls.style.display = show ? "flex" : "none";
     }
 
     function setAppHeight() {
@@ -2317,7 +2323,7 @@
       }
       updateFsControls();
       try {
-        if (screen.orientation?.lock) {
+        if (screen.orientation?.lock && currentMode() !== "free") {
           const current = screen.orientation.type || "";
           if (current.includes("portrait")) {
             await screen.orientation.lock("portrait").catch(() => { });
@@ -4548,6 +4554,7 @@
           : SONGS.find((s) => s.id === songSel.value) || SONGS[0],
         mode
       );
+      updateFsControls();
     });
     songSel.addEventListener("change", () => {
       if (game?.running) pause();
@@ -4556,6 +4563,7 @@
         "songs"
       );
       refreshBest();
+      updateFsControls();
     });
 
     window.addEventListener("keydown", (e) => {
