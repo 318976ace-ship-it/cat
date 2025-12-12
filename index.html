@@ -1686,9 +1686,9 @@
 
     @media (max-width: 768px) {
       :root {
-        --tile-size: clamp(90px,
-            calc(((100vw - 48px) / var(--lane-count, 8)) - 4px),
-            140px);
+        --tile-size: clamp(110px,
+            calc(((100vw - 48px) / var(--lane-count, 6)) + 12px),
+            190px);
         --hitline-bottom: 70px;
         --text: #111111;
       }
@@ -1754,9 +1754,9 @@
 
     @media (orientation: landscape) and (max-width: 1024px) {
       :root {
-        --tile-size: clamp(96px,
-            calc(((100vw - 120px) / var(--lane-count, 8)) + 4px),
-            150px);
+        --tile-size: clamp(110px,
+            calc(((100vw - 120px) / var(--lane-count, 6)) + 12px),
+            180px);
         --hitline-bottom: 50px;
       }
 
@@ -3034,7 +3034,13 @@
     /* 主鍵盤 & 音色 */
     const WHITE_LANES = [0, 2, 4, 5, 7, 9, 11];
     const BLACK_LANES = [1, 3, 6, 8, 10];
-    const MOBILE_TARGET_OFFSETS = [0, 2, 4, 5, 7, 9, 11, 12];
+    const MOBILE_FREE_WHITE = [0, 2, 4, 5, 7, 9, 11, 12];
+    const MOBILE4_GROUP_SIZE = 3;
+    function mapLaneToMobile4(lane) {
+      if (lane < 0) return lane;
+      const band = Math.floor(lane / MOBILE4_GROUP_SIZE);
+      return Math.max(0, Math.min(3, band));
+    }
     const LAYOUTS = {
       desktop: {
         id: "desktop",
@@ -3068,37 +3074,23 @@
           },
         },
       },
-      mobile8: {
-        id: "mobile8",
-        lanes: 8,
+      mobile4: {
+        id: "mobile4",
+        lanes: 4,
         keyMap: {
-          a: 0,
-          s: 1,
-          d: 2,
-          f: 3,
-          j: 4,
-          k: 5,
-          l: 6,
-          ";": 7,
+          d: 0,
+          f: 1,
+          j: 2,
+          k: 3,
         },
-        midiOffset: (lane) => MOBILE_TARGET_OFFSETS[lane] ?? lane,
-        mapLane: (lane) => {
-          if (lane < 0) return lane;
-          let best = 0;
-          let bestDiff = Infinity;
-          MOBILE_TARGET_OFFSETS.forEach((off, idx) => {
-            const diff = Math.abs(off - lane);
-            if (diff < bestDiff) {
-              bestDiff = diff;
-              best = idx;
-            }
-          });
-          return best;
-        },
-        whiteLanes: [0, 1, 2, 3, 4, 5, 6, 7],
-        blackLanes: [],
+        midiOffset: (lane) => lane,
+        mapLane: (lane) => mapLaneToMobile4(lane),
+        whiteLanes: WHITE_LANES,
+        blackLanes: BLACK_LANES,
+        freeWhiteLanes: MOBILE_FREE_WHITE,
+        freeBlackLanes: [],
         freeLabels: {
-          white: ["C(A)", "D(S)", "E(D)", "F(F)", "G(J)", "A(K)", "B(L)", "C5(;)"],
+          white: ["C", "D", "E", "F", "G", "A", "B", "C5"],
           black: {},
         },
       },
@@ -3241,19 +3233,28 @@
     function midiToFreq(m) {
       return 440 * Math.pow(2, (m - 69) / 12);
     }
-    function laneToMidi(lane) {
+    function laneToMidi(lane, midiOverride = null) {
       const base = game && game.song ? game.song.baseNote ?? 60 : 60;
       const off =
-        currentLayout.midiOffset && typeof currentLayout.midiOffset === "function"
+        midiOverride !== null && midiOverride !== undefined
+          ? midiOverride
+          : currentLayout.midiOffset && typeof currentLayout.midiOffset === "function"
           ? currentLayout.midiOffset(lane)
           : lane;
       return base + off;
     }
 
-    function playSynthByLane(lane, dur = 0.2) {
+    function midiOffsetForIdx(idx) {
+      if (!game?.song?.seq) return null;
+      if (idx < 0 || idx >= game.song.seq.length) return null;
+      const off = game.song.seq[idx];
+      return typeof off === "number" ? off : null;
+    }
+
+    function playSynthByLane(lane, dur = 0.2, midiOverride = null) {
       if (!audioCtx || !masterGain) return;
       const nowT = audioCtx.currentTime;
-      const freq = midiToFreq(laneToMidi(lane));
+      const freq = midiToFreq(laneToMidi(lane, midiOverride));
 
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
@@ -3862,8 +3863,14 @@
       const playW = playEl?.clientWidth || 0;
       const laneW = laneCount > 0 && playW ? playW / laneCount : 0;
       const cssTile = cssNumber("--tile-size", CONFIG.TILE_H);
+      const isCozyMobile = currentLayoutId === "mobile4";
+      const minTile = isCozyMobile ? 110 : 70;
+      const maxTile = isCozyMobile ? 220 : 200;
+      const laneBonus = isCozyMobile ? 24 : 12;
       const autoTile =
-        laneW > 0 ? Math.max(70, Math.min(200, laneW + 12)) : cssTile;
+        laneW > 0
+          ? Math.max(minTile, Math.min(maxTile, laneW + laneBonus))
+          : cssTile;
       const tileSize = Number.isFinite(autoTile) ? autoTile : cssTile;
       document.documentElement.style.setProperty(
         "--tile-size",
@@ -3948,9 +3955,9 @@
       if (blocked && document.fullscreenElement) exitFullscreen();
 
       const target = blocked
-        ? "mobile8"
+        ? "mobile4"
         : portraitMobile.matches
-          ? "mobile8"
+          ? "mobile4"
           : "desktop";
       if (target !== currentLayoutId) {
         applyLayout(target);
@@ -3981,8 +3988,14 @@
       freeBlacks.innerHTML = "";
       const labelsWhite = currentLayout.freeLabels.white || [];
       const labelsBlack = currentLayout.freeLabels.black || {};
-      const whiteLanes = currentLayout.whiteLanes || WHITE_LANES;
-      const blackLanes = currentLayout.blackLanes || BLACK_LANES;
+      const whiteLanes =
+        currentLayout.freeWhiteLanes ||
+        currentLayout.whiteLanes ||
+        WHITE_LANES;
+      const blackLanes =
+        currentLayout.freeBlackLanes ||
+        currentLayout.blackLanes ||
+        BLACK_LANES;
       const whiteCount = whiteLanes.length;
       for (let i = 0; i < whiteCount; i++) {
         const lane = whiteLanes[i];
@@ -4394,8 +4407,11 @@
         addScore(r);
         showJudge(r.toUpperCase(), r);
         ensureAudio();
-        playSynthByLane(laneNum, 0.18);
-        flashFreeKey(laneNum);
+        const midiOff = midiOffsetForIdx(best.idx);
+        playSynthByLane(laneNum, 0.18, midiOff);
+        const displayLane =
+          midiOff !== null && midiOff !== undefined ? midiOff : laneNum;
+        flashFreeKey(displayLane);
         if ([20, 50, 100].includes(game.combo)) {
           triggerComboEffect(game.combo);
         }
@@ -4973,12 +4989,3 @@
 </body>
 
 </html>
-
-
-
-
-
-
-
-
-

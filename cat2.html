@@ -687,6 +687,597 @@
         mix-blend-mode: screen;
       }
 
+      /* Dynamic backgrounds */
+      .play.bg-aurora {
+        background: linear-gradient(
+          180deg,
+          #051222 0%,
+          #0a2c4f 46%,
+          #050c1a 100%
+        );
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12),
+          0 18px 44px rgba(4, 14, 32, 0.65);
+      }
+
+      .play.bg-aurora::before {
+        background: conic-gradient(
+          from 40deg at 30% 40%,
+          rgba(80, 210, 255, 0.38),
+          rgba(255, 140, 220, 0.24),
+          rgba(120, 255, 195, 0.32),
+          rgba(80, 210, 255, 0.38)
+        );
+        background-size: 200% 200%;
+        animation: auroraSweep 9s ease-in-out infinite alternate;
+        filter: blur(18px);
+        opacity: 0.82;
+      }
+
+      .play.bg-aurora::after {
+        background: radial-gradient(
+            circle at 18% 26%,
+            rgba(255, 255, 255, 0.4) 0 4%,
+            transparent 12%
+          ),
+          radial-gradient(
+            circle at 72% 18%,
+            rgba(190, 225, 255, 0.38) 0 6%,
+            transparent 16%
+          ),
+          radial-gradient(
+            circle at 84% 36%,
+            rgba(255, 194, 234, 0.32) 0 6%,
+            transparent 18%
+          );
+        animation: auroraSparkle 7s ease-in-out infinite alternate;
+        mix-blend-mode: screen;
+        opacity: 0.78;
+      }
+
+      .play.bg-orbit {
+        background: radial-gradient(
+            circle at 52% 58%,
+            rgba(60, 110, 180, 0.55) 0 34%,
+            transparent 64%
+          ),
+          linear-gradient(180deg, #030712 0%, #0a1430 48%, #02040a 100%);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12),
+          0 20px 48px rgba(4, 8, 18, 0.85);
+      }
+
+      .play.bg-orbit::before {
+        background: conic-gradient(
+            from 0deg,
+            rgba(255, 220, 160, 0.14),
+            rgba(140, 210, 255, 0.18),
+            rgba(255, 160, 230, 0.16),
+            rgba(255, 220, 160, 0.14)
+          ),
+          radial-gradient(
+            circle at 50% 50%,
+            rgba(255, 255, 255, 0.2) 0 8px,
+            transparent 20px
+          ),
+          radial-gradient(
+            circle at 50% 50%,
+            rgba(120, 200, 255, 0.14) 0 40%,
+            transparent 64%
+          );
+        background-size: 200% 200%, 120% 120%, 140% 140%;
+        animation: orbitSpiral 11s linear infinite;
+        opacity: 0.95;
+        mix-blend-mode: screen;
+      }
+
+      .play.bg-orbit::after {
+        background: radial-gradient(
+            circle at 18% 22%,
+            rgba(255, 255, 255, 0.6) 0 5px,
+            transparent 12px
+          ),
+          radial-gradient(
+            circle at 72% 30%,
+            rgba(180, 225, 255, 0.44) 0 6px,
+            transparent 14px
+          ),
+          radial-gradient(
+            circle at 64% 74%,
+            rgba(255, 190, 140, 0.38) 0 7px,
+            transparent 16px
+          ),
+          radial-gradient(
+            circle at 28% 72%,
+            rgba(255, 150, 200, 0.36) 0 6px,
+            transparent 15px
+          ),
+          radial-gradient(
+            circle at 52% 52%,
+            rgba(255, 255, 255, 0.12) 0 72%,
+            transparent 82%
+          );
+        animation: starTwinkle 2.6s ease-in-out infinite alternate,
+          starDrift 9s linear infinite;
+        opacity: 0.8;
+        mix-blend-mode: screen;
+      }
+
+      .play.bg-bubble {
+        background: linear-gradient(
+          150deg,
+          #0e1a30 0%,
+          #1c2f56 52%,
+          #0a1024 100%
+        );
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12),
+          0 20px 48px rgba(6, 14, 32, 0.82);
+      }
+
+      .play.bg-bubble::before {
+        background: repeating-linear-gradient(
+            115deg,
+            rgba(255, 190, 230, 0.28) 0 14px,
+            transparent 14px 32px
+          ),
+          repeating-linear-gradient(
+            65deg,
+            rgba(150, 210, 255, 0.26) 0 12px,
+            transparent 12px 30px
+          ),
+          radial-gradient(
+            circle at 28% 32%,
+            rgba(255, 220, 180, 0.32) 0 18%,
+            transparent 42%
+          ),
+          radial-gradient(
+            circle at 66% 24%,
+            rgba(200, 235, 255, 0.3) 0 14%,
+            transparent 40%
+          ),
+          radial-gradient(
+            circle at 54% 68%,
+            rgba(255, 255, 255, 0.26) 0 18%,
+            transparent 44%
+          );
+        background-size: 220% 220%, 200% 200%, 120% 120%, 140% 140%, 160% 160%;
+        animation: rippleWave 7s ease-in-out infinite alternate,
+          rippleFlow 12s linear infinite;
+        filter: blur(4px);
+        opacity: 0.95;
+        mix-blend-mode: screen;
+      }
+
+      .play.bg-bubble::after {
+        background: radial-gradient(
+            circle at 24% 46%,
+            rgba(255, 255, 255, 0.86) 0 12px,
+            transparent 24px
+          ),
+          radial-gradient(
+            circle at 62% 52%,
+            rgba(255, 255, 255, 0.78) 0 13px,
+            transparent 26px
+          ),
+          radial-gradient(
+            circle at 78% 38%,
+            rgba(255, 255, 255, 0.74) 0 10px,
+            transparent 22px
+          ),
+          radial-gradient(
+            circle at 48% 62%,
+            rgba(255, 255, 255, 0.7) 0 11px,
+            transparent 24px
+          ),
+          radial-gradient(
+            circle at 32% 28%,
+            rgba(255, 255, 255, 0.64) 0 9px,
+            transparent 20px
+          );
+        animation: rippleGlow 4s ease-in-out infinite alternate,
+          rippleFlow 9s linear infinite reverse;
+        opacity: 0.94;
+        mix-blend-mode: screen;
+      }
+
+      .play.bg-particles {
+        background: linear-gradient(
+          160deg,
+          #0a1728 0%,
+          #122c4d 48%,
+          #0a0f1c 100%
+        );
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12),
+          0 18px 44px rgba(6, 14, 32, 0.74);
+      }
+
+      .play.bg-bubble::before {
+        background: radial-gradient(
+            circle at 18% 32%,
+            rgba(255, 180, 230, 0.4) 0 16%,
+            transparent 40%
+          ),
+          radial-gradient(
+            circle at 42% 20%,
+            rgba(160, 220, 255, 0.38) 0 14%,
+            transparent 38%
+          ),
+          radial-gradient(
+            circle at 70% 30%,
+            rgba(255, 220, 180, 0.36) 0 18%,
+            transparent 44%
+          ),
+          radial-gradient(
+            circle at 58% 64%,
+            rgba(140, 220, 255, 0.34) 0 18%,
+            transparent 42%
+          ),
+          radial-gradient(
+            circle at 30% 70%,
+            rgba(255, 255, 255, 0.26) 0 14%,
+            transparent 36%
+          );
+        animation: bubbleFloat 7s ease-in-out infinite alternate;
+        filter: blur(6px);
+        opacity: 0.95;
+        mix-blend-mode: screen;
+      }
+
+      .play.bg-bubble::after {
+        background: radial-gradient(
+            circle at 24% 46%,
+            rgba(255, 255, 255, 0.8) 0 10px,
+            transparent 22px
+          ),
+          radial-gradient(
+            circle at 62% 52%,
+            rgba(255, 255, 255, 0.7) 0 12px,
+            transparent 26px
+          ),
+          radial-gradient(
+            circle at 78% 38%,
+            rgba(255, 255, 255, 0.68) 0 8px,
+            transparent 20px
+          ),
+          radial-gradient(
+            circle at 48% 62%,
+            rgba(255, 255, 255, 0.6) 0 9px,
+            transparent 22px
+          );
+        animation: bubbleShimmer 4.5s ease-in-out infinite alternate;
+        opacity: 0.9;
+        mix-blend-mode: screen;
+      }
+
+      .play.bg-particles {
+        background: linear-gradient(
+          160deg,
+          #071019 0%,
+          #0b1f33 50%,
+          #060c18 100%
+        );
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+          0 18px 40px rgba(4, 10, 24, 0.7);
+      }
+
+      .play.bg-particles::before {
+        background: radial-gradient(
+            circle at 10% 20%,
+            rgba(255, 255, 255, 0.5) 0 3px,
+            transparent 10px
+          ),
+          radial-gradient(
+            circle at 26% 28%,
+            rgba(120, 220, 255, 0.32) 0 4px,
+            transparent 12px
+          ),
+          radial-gradient(
+            circle at 42% 18%,
+            rgba(255, 180, 240, 0.32) 0 4px,
+            transparent 12px
+          ),
+          radial-gradient(
+            circle at 64% 26%,
+            rgba(190, 230, 255, 0.3) 0 5px,
+            transparent 14px
+          ),
+          radial-gradient(
+            circle at 82% 34%,
+            rgba(255, 210, 180, 0.3) 0 5px,
+            transparent 14px
+          ),
+          radial-gradient(
+            circle at 22% 64%,
+            rgba(255, 255, 255, 0.4) 0 5px,
+            transparent 15px
+          ),
+          radial-gradient(
+            circle at 62% 72%,
+            rgba(255, 190, 220, 0.28) 0 5px,
+            transparent 15px
+          ),
+          radial-gradient(
+            circle at 78% 62%,
+            rgba(150, 210, 255, 0.28) 0 5px,
+            transparent 15px
+          );
+        background-size: 160% 160%;
+        animation: particleDrift 18s linear infinite;
+        opacity: 0.9;
+      }
+
+      .play.bg-particles::after {
+        background: radial-gradient(
+            circle at 30% 40%,
+            rgba(255, 255, 255, 0.5) 0 3px,
+            transparent 10px
+          ),
+          radial-gradient(
+            circle at 60% 55%,
+            rgba(255, 230, 200, 0.4) 0 4px,
+            transparent 12px
+          ),
+          radial-gradient(
+            circle at 80% 40%,
+            rgba(200, 230, 255, 0.32) 0 4px,
+            transparent 12px
+          );
+        animation: particleTwinkle 6s ease-in-out infinite alternate;
+        mix-blend-mode: screen;
+        opacity: 0.7;
+      }
+
+      .play.bg-firework {
+        background: radial-gradient(
+            circle at 50% 60%,
+            rgba(90, 120, 200, 0.42) 0 32%,
+            transparent 60%
+          ),
+          linear-gradient(180deg, #090812 0%, #150f2a 48%, #05050f 100%);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12),
+          0 22px 48px rgba(8, 8, 24, 0.76);
+      }
+
+      .play.bg-firework::before {
+        background: radial-gradient(
+            circle at 45% 42%,
+            rgba(255, 180, 120, 0.65) 0 18%,
+            transparent 36%
+          ),
+          radial-gradient(
+            circle at 60% 32%,
+            rgba(120, 200, 255, 0.6) 0 16%,
+            transparent 34%
+          ),
+          radial-gradient(
+            circle at 52% 60%,
+            rgba(255, 140, 220, 0.55) 0 18%,
+            transparent 38%
+          ),
+          radial-gradient(
+            circle at 50% 50%,
+            rgba(255, 240, 200, 0.4) 0 12%,
+            transparent 32%
+          );
+        animation: fireworkBurst 3.8s ease-out infinite;
+        mix-blend-mode: screen;
+        opacity: 0.92;
+      }
+
+      .play.bg-firework::after {
+        background: linear-gradient(
+            170deg,
+            rgba(255, 200, 140, 0.7),
+            transparent 60%
+          ),
+          linear-gradient(190deg, rgba(140, 220, 255, 0.7), transparent 60%),
+          linear-gradient(210deg, rgba(255, 140, 220, 0.65), transparent 60%),
+          radial-gradient(
+            circle at 20% 22%,
+            rgba(255, 255, 255, 0.65) 0 4px,
+            transparent 12px
+          ),
+          radial-gradient(
+            circle at 80% 26%,
+            rgba(255, 230, 200, 0.55) 0 5px,
+            transparent 14px
+          ),
+          radial-gradient(
+            circle at 72% 70%,
+            rgba(200, 230, 255, 0.45) 0 6px,
+            transparent 16px
+          ),
+          radial-gradient(
+            circle at 26% 68%,
+            rgba(255, 190, 220, 0.5) 0 5px,
+            transparent 14px
+          );
+        background-size: 2px 120px, 2px 120px, 2px 120px, auto, auto, auto, auto;
+        background-repeat: no-repeat;
+        background-position: 48% 40%, 52% 44%, 56% 38%, 20% 22%, 80% 26%,
+          72% 70%, 26% 68%;
+        animation: fireworkTrail 3.8s ease-out infinite,
+          particleTwinkle 4s ease-in-out infinite alternate;
+        mix-blend-mode: screen;
+        opacity: 0.82;
+      }
+
+      .play.bg-confetti {
+        background: linear-gradient(
+          180deg,
+          #0a0f1d 0%,
+          #132446 48%,
+          #080c18 100%
+        );
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12),
+          0 18px 42px rgba(8, 12, 28, 0.76);
+      }
+
+      .play.bg-confetti::before {
+        background: linear-gradient(
+            120deg,
+            rgba(255, 180, 90, 0.4) 0 10px,
+            transparent 10px 22px
+          ),
+          linear-gradient(
+            75deg,
+            rgba(140, 200, 255, 0.36) 0 12px,
+            transparent 12px 24px
+          ),
+          linear-gradient(
+            150deg,
+            rgba(255, 120, 200, 0.34) 0 8px,
+            transparent 8px 20px
+          ),
+          linear-gradient(
+            100deg,
+            rgba(120, 255, 200, 0.3) 0 10px,
+            transparent 10px 22px
+          );
+        background-size: 120px 120px, 140px 140px, 100px 100px, 160px 160px;
+        animation: confettiFall 8s linear infinite;
+        opacity: 0.78;
+        mix-blend-mode: screen;
+      }
+
+      .play.bg-confetti::after {
+        background: radial-gradient(
+            circle at 20% 30%,
+            rgba(255, 255, 255, 0.7) 0 3px,
+            transparent 9px
+          ),
+          radial-gradient(
+            circle at 60% 12%,
+            rgba(255, 230, 200, 0.65) 0 4px,
+            transparent 10px
+          ),
+          radial-gradient(
+            circle at 80% 40%,
+            rgba(200, 230, 255, 0.6) 0 4px,
+            transparent 10px
+          ),
+          radial-gradient(
+            circle at 44% 68%,
+            rgba(255, 200, 230, 0.58) 0 3px,
+            transparent 9px
+          );
+        animation: confettiDrift 6s ease-in-out infinite alternate;
+        opacity: 0.78;
+        mix-blend-mode: screen;
+      }
+
+      @keyframes auroraSweep {
+        from {
+          background-position: 0% 20%;
+        }
+        to {
+          background-position: 90% 70%;
+        }
+      }
+      @keyframes auroraSparkle {
+        from {
+          opacity: 0.65;
+          transform: translateY(2px);
+        }
+        to {
+          opacity: 0.95;
+          transform: translateY(-12px);
+        }
+      }
+      @keyframes orbitGlow {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(540deg);
+        }
+      }
+      @keyframes orbitDrift {
+        from {
+          opacity: 0.6;
+          transform: translateY(6px);
+        }
+        to {
+          opacity: 0.9;
+          transform: translateY(-10px);
+        }
+      }
+      @keyframes bubbleFloat {
+        from {
+          transform: translateY(8px) scale(0.96);
+        }
+        to {
+          transform: translateY(-12px) scale(1.04);
+        }
+      }
+      @keyframes bubbleShimmer {
+        from {
+          opacity: 0.75;
+          transform: scale(0.97);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1.04);
+        }
+      }
+      @keyframes particleDrift {
+        from {
+          background-position: 0% 0%;
+        }
+        to {
+          background-position: -40% -30%;
+        }
+      }
+      @keyframes particleTwinkle {
+        from {
+          opacity: 0.6;
+        }
+        to {
+          opacity: 0.95;
+        }
+      }
+      @keyframes fireworkBurst {
+        0% {
+          transform: scale(0.6);
+          opacity: 0.4;
+          filter: blur(2px);
+        }
+        35% {
+          transform: scale(1);
+          opacity: 1;
+          filter: blur(0.5px);
+        }
+        100% {
+          transform: scale(1.12);
+          opacity: 0;
+          filter: blur(4px);
+        }
+      }
+      @keyframes fireworkTrail {
+        from {
+          background-position-y: 20%, 24%, 18%, 22%, 26%, 70%, 68%;
+          opacity: 1;
+        }
+        to {
+          background-position-y: 60%, 64%, 58%, 46%, 50%, 90%, 88%;
+          opacity: 0;
+        }
+      }
+      @keyframes confettiFall {
+        from {
+          background-position: 0% 0%;
+        }
+        to {
+          background-position: 0% 220%;
+        }
+      }
+      @keyframes confettiDrift {
+        from {
+          transform: translateY(0);
+        }
+        to {
+          transform: translateY(-10px);
+        }
+      }
+
       .play.free-mode {
         filter: saturate(0.9) brightness(1.02);
       }
@@ -1990,6 +2581,19 @@
           </span>
 
           <span class="field">
+            背景動效
+            <select id="bgStyleSel">
+              <option value="classic">經典暮光（原版）</option>
+              <option value="aurora">極光旋流</option>
+              <option value="orbit">星環脈衝</option>
+              <option value="bubble">泡泡糖霓彩</option>
+              <option value="particles">流動粒子</option>
+              <option value="firework">煙火流星</option>
+              <option value="confetti">繽紛紙片</option>
+            </select>
+          </span>
+
+          <span class="field">
             速度
             <input
               id="speed"
@@ -3264,6 +3868,37 @@
       /* Theme & Tone select */
       const themeSel = $("#themeSel");
       const toneSel = $("#toneSel");
+      const bgStyleSel = $("#bgStyleSel");
+      const BG_STYLE_KEY = "mew_bg_style_v1";
+      const BG_STYLE_LIST = [
+        "aurora",
+        "orbit",
+        "bubble",
+        "particles",
+        "firework",
+        "confetti",
+      ];
+      const applyBgStyle = (style) => {
+        const picked = BG_STYLE_LIST.includes(style) ? style : "classic";
+        playEl.classList.remove(...BG_STYLE_LIST.map((s) => `bg-${s}`));
+        if (picked !== "classic") {
+          playEl.classList.add(`bg-${picked}`);
+        }
+        storage.set(BG_STYLE_KEY, picked);
+      };
+      const storedBgStyle = storage.get(BG_STYLE_KEY) || "aurora";
+      if (bgStyleSel) {
+        const initialBg =
+          BG_STYLE_LIST.includes(storedBgStyle) || storedBgStyle === "classic"
+            ? storedBgStyle
+            : "aurora";
+        bgStyleSel.value = initialBg;
+        applyBgStyle(initialBg);
+        bgStyleSel.addEventListener("change", () =>
+          applyBgStyle(bgStyleSel.value)
+        );
+      }
+
       document.body.setAttribute("data-theme", "warm");
       themeSel.addEventListener("change", () => {
         document.body.setAttribute("data-theme", themeSel.value);
