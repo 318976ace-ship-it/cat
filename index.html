@@ -198,6 +198,99 @@
       padding: 18px;
     }
 
+    .hero {
+      background: radial-gradient(circle at 18% 20%, rgba(255, 255, 255, 0.5), transparent 35%),
+        radial-gradient(circle at 82% 12%, rgba(255, 214, 160, 0.28), transparent 32%),
+        linear-gradient(135deg, #fef4ff 0%, #ffe7f3 35%, #ffefe2 100%);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 22px;
+      box-shadow: 0 16px 36px rgba(255, 185, 208, 0.28);
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .hero-lede {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .hero-title {
+      font-size: clamp(28px, 4vw, 36px);
+      line-height: 1.1;
+    }
+
+    .hero-sub {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .hero-note {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .challenge-card {
+      background: rgba(255, 255, 255, 0.75);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+      backdrop-filter: blur(6px);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .challenge-main {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .challenge-title {
+      font-weight: 900;
+      font-size: 17px;
+      letter-spacing: 0.2px;
+    }
+
+    .challenge-meta {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .challenge-pill {
+      background: linear-gradient(135deg, #ffe3a7, #ffb5d0);
+      border-radius: 12px;
+      padding: 8px 10px;
+      font-weight: 800;
+      color: #553028;
+      min-width: 120px;
+      text-align: center;
+      box-shadow: 0 10px 20px rgba(255, 153, 145, 0.28);
+    }
+
+    .challenge-desc {
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
     .row {
       display: flex;
       gap: 12px;
@@ -222,6 +315,23 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.9);
       font-size: 13px;
       position: relative;
+    }
+
+    h1,
+    h2,
+    h3,
+    .display {
+      font-family: "DM Sans", "Noto Sans TC", system-ui, -apple-system, Segoe UI,
+        Roboto, sans-serif;
+      letter-spacing: 0.2px;
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-size: 11px;
+      font-weight: 800;
+      color: #ff7fb4;
     }
 
     button:hover {
@@ -275,6 +385,34 @@
 
     .btn-primary-large span {
       font-size: 16px;
+    }
+
+    .btn-cta {
+      background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.28), transparent 45%),
+        linear-gradient(135deg, #ff82c7, #ffb56b);
+      color: #1f2c3d;
+      border: none;
+      box-shadow: 0 14px 30px rgba(255, 156, 198, 0.4),
+        0 6px 16px rgba(255, 161, 100, 0.35);
+      padding: 12px 22px;
+      font-size: 15px;
+    }
+
+    .btn-cta:hover {
+      transform: translateY(-1px) scale(1.01);
+      box-shadow: 0 16px 34px rgba(255, 156, 198, 0.45),
+        0 8px 18px rgba(255, 161, 100, 0.38);
+    }
+
+    .ghost {
+      background: rgba(255, 255, 255, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      color: var(--text);
+      box-shadow: none;
+    }
+
+    .ghost:hover {
+      background: rgba(255, 255, 255, 0.6);
     }
 
     button:disabled {
@@ -492,6 +630,12 @@
           #253c94 38%,
           #1b2f78 70%,
           #13235c 100%);
+    }
+
+    .play.combo-hot {
+      filter: saturate(1.1) brightness(1.05);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22),
+        0 22px 46px rgba(19, 35, 92, 0.4);
     }
 
     .play::before {
@@ -836,6 +980,13 @@
       border-top: 1px solid rgba(255, 255, 255, 0.9);
     }
 
+    .hitline.combo-hot {
+      background: linear-gradient(90deg, #ffd18c, #ff9ed2, #ffd18c);
+      box-shadow: 0 0 20px rgba(255, 170, 120, 0.65),
+        0 0 26px rgba(255, 136, 208, 0.55);
+      filter: drop-shadow(0 0 8px rgba(255, 137, 220, 0.35));
+    }
+
     .hitline::after {
       content: "Perfect Line";
       position: absolute;
@@ -1056,11 +1207,14 @@
     }
 
     .card {
-      background: #fff;
-      padding: 20px;
-      border-radius: 16px;
-      box-shadow: var(--shadow);
-      max-width: 720px;
+      background: radial-gradient(circle at 18% 12%, rgba(255, 214, 230, 0.35), transparent 32%),
+        radial-gradient(circle at 82% 14%, rgba(255, 206, 170, 0.3), transparent 30%),
+        #ffffff;
+      padding: 22px;
+      border-radius: 18px;
+      box-shadow: 0 18px 36px rgba(0, 0, 0, 0.12);
+      border: 1px solid rgba(255, 200, 220, 0.5);
+      max-width: 760px;
       width: 96%;
     }
 
@@ -1379,6 +1533,24 @@
       text-align: center;
     }
 
+    .calib-card {
+      width: min(460px, 92vw);
+      gap: 8px;
+    }
+
+    .calib-progress {
+      font-weight: 900;
+      font-size: 18px;
+      margin: 8px 0 2px;
+    }
+
+    .calib-sub {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+      margin-bottom: 4px;
+    }
+
     .start-logo {
       width: 52px;
       height: 52px;
@@ -1692,6 +1864,15 @@
         --hitline-bottom: 70px;
         /* 預設顯示提示時的遊戲區高度 */
         --text: #111111;
+      }
+
+      .hero {
+        padding: 18px;
+      }
+
+      .hero-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 12px;
       }
 
       .play-wrap {
@@ -2008,6 +2189,25 @@
     </div>
   </div>
 
+  <!-- 延遲校準 -->
+  <div id="calibOverlay" class="start-overlay" style="display: none">
+    <div class="start-card calib-card">
+      <div class="start-title">延遲校準</div>
+      <div class="calib-sub" id="calibHint">
+        聽節拍並依節奏點擊（滑鼠/觸控）或按空白鍵。會取平均差值自動調整判定。
+      </div>
+      <div class="calib-progress" id="calibProgress">0 / 12</div>
+      <div class="start-actions">
+        <button id="btnCalibBegin" class="btn-primary-large">
+          <span>▶️</span> 開始節拍
+        </button>
+        <button id="btnCalibCancel" class="secondary start-btn-secondary">
+          取消
+        </button>
+      </div>
+    </div>
+  </div>
+
   <div class="shell">
     <header class="nav">
       <div class="brand">
@@ -2026,6 +2226,39 @@
         </button>
       </div>
     </header>
+
+    <section class="hero">
+      <div class="hero-grid">
+        <div class="hero-lede">
+          <div class="eyebrow">今日挑戰</div>
+          <h1 class="hero-title">Mew Atelier · 12 鍵節奏琴</h1>
+          <p class="hero-sub">
+            30 首 30 秒 BGM、真實黑白鍵排列，支援鍵盤、滑鼠/觸控。收起提示放大琴面，或直接進入今日挑戰拿更高分！
+          </p>
+          <div class="hero-actions">
+            <button id="btnHeroStart" class="btn-cta btn-primary-large">
+              <span>▶️</span> 立即開始
+            </button>
+            <button id="btnHeroView" class="secondary ghost">
+              先看看介面
+            </button>
+          </div>
+          <div class="hero-note">鍵位：A S D F / J K L 白鍵 · W E T Y U 黑鍵 · 支援全螢幕</div>
+        </div>
+
+        <div class="challenge-card" id="challengeCard">
+          <div class="eyebrow">今日挑戰曲</div>
+          <div class="challenge-main">
+            <div>
+              <div class="challenge-title" id="challengeTitle">Loading...</div>
+              <div class="challenge-meta" id="challengeMeta">BPM / 難度</div>
+            </div>
+            <div class="challenge-pill" id="challengeReward">+10% 分數</div>
+          </div>
+          <div class="challenge-desc" id="challengeDesc">拿下高分就能在榜上留下名字，來場喵喵三十秒衝刺！</div>
+        </div>
+      </div>
+    </section>
 
     <section class="panel">
       <!-- 控制列 -->
@@ -2169,6 +2402,12 @@
                 </button>
                 <button id="btnSpeedUp" class="secondary">
                   速度 +0.2x 挑戰
+                </button>
+                <button id="btnNextChallenge" class="btn-primary-large">
+                  <span>🚀</span> 下一個挑戰
+                </button>
+                <button id="btnCopyResult" class="secondary ghost">
+                  複製戰績
                 </button>
                 <button id="btnClose" class="secondary">關閉</button>
               </div>
@@ -2319,6 +2558,19 @@
         </div>
       </div>
 
+      <div class="settings-group">
+        <div class="settings-label">延遲校準</div>
+        <div class="row">
+          <button id="btnOpenCalib" class="btn-primary-large small">
+            <span>🧭</span> 開始校準
+          </button>
+          <button id="btnResetOffset" class="secondary small">
+            重置
+          </button>
+          <div class="muted mini" id="offsetStatus">目前校準：0 ms</div>
+        </div>
+      </div>
+
       <div style="
             font-size: 10px;
             color: var(--muted);
@@ -2335,6 +2587,7 @@
     const $ = (s) => document.querySelector(s);
 
     const playEl = $("#play");
+    const hitlineEl = $(".hitline");
     const playWrapEl = $("#playWrap");
     const lanesEl = $("#lanes"),
       judgeEl = $("#judge"),
@@ -2350,11 +2603,24 @@
       toastTextEl = $("#toastText"),
       toastCloseEl = $("#toastClose"),
       startOverlayEl = $("#startOverlay"),
+      calibOverlayEl = $("#calibOverlay"),
+      btnCalibBegin = $("#btnCalibBegin"),
+      btnCalibCancel = $("#btnCalibCancel"),
+      btnOpenCalib = $("#btnOpenCalib"),
+      btnResetOffset = $("#btnResetOffset"),
+      offsetStatusEl = $("#offsetStatus"),
+      calibProgressEl = $("#calibProgress"),
+      calibHintEl = $("#calibHint"),
+      onboardOverlayEl = $("#onboardOverlay"),
+      btnSkipOnboard = $("#btnSkipOnboard"),
+      btnOnboardPlay = $("#btnOnboardPlay"),
       comboLabelEl = $("#comboLabel"),
       rankPanelEl = $("#rankPanel"),
       rankBodyEl = $("#rankBody"),
       rankEmptyEl = $("#rankEmpty"),
       resultNoteEl = $("#resultNote"),
+      btnCopyResult = $("#btnCopyResult"),
+      btnNextChallenge = $("#btnNextChallenge"),
       songInfoEl = $("#songInfo"),
       countdownEl = $("#countdown"),
       judgePanelEl = $("#judgePanel"),
@@ -2369,6 +2635,12 @@
       fsPauseBtn = $("#fsPause"),
       fsRestartBtn = $("#fsRestart"),
       btnMissionsEl = $("#btnMissions"),
+      heroStartBtn = $("#btnHeroStart"),
+      heroViewBtn = $("#btnHeroView"),
+      challengeTitleEl = $("#challengeTitle"),
+      challengeMetaEl = $("#challengeMeta"),
+      challengeRewardEl = $("#challengeReward"),
+      challengeDescEl = $("#challengeDesc"),
       hintColumnEl = $("#hintColumn"),
       hintToggleBtn = $("#btnToggleHints"),
       btnToggleUI = $("#btnToggleUI"),
@@ -2443,6 +2715,8 @@
     const STORE_KEY = "pianotiles12_realkeys_v2";
 
     const HINT_VIS_KEY = "mew_hint_visibility_v1";
+    const OFFSET_KEY = "mew_offset_v1";
+    const ONBOARD_KEY = "mew_onboarding_seen_v1";
     const QUEST_KEY = "mew_quests_v1";
     const LB_KEY = "mew_leaderboard_v1";
 
@@ -2478,6 +2752,128 @@
         hintHidden = !hintHidden;
         applyHintVisibility(hintHidden);
       });
+    }
+
+    function updateOffsetUI() {
+      if (!offsetStatusEl) return;
+      const sign = autoOffset > 0 ? "+" : "";
+      offsetStatusEl.textContent = `目前校準：${sign}${autoOffset} ms`;
+    }
+
+    function setAutoOffset(val, { persist = true } = {}) {
+      const clamped = Math.max(-120, Math.min(120, Math.round(val || 0)));
+      autoOffset = clamped;
+      if (persist) storage.set(OFFSET_KEY, String(clamped));
+      updateOffsetUI();
+    }
+
+    function resetOffset() {
+      setAutoOffset(0, { persist: true });
+      enqueueToast("已重置校準值為 0 ms");
+    }
+
+    /* 延遲校準 */
+    const CALIB_BEATS = 12;
+    const CALIB_INTERVAL = 650; // ms
+    let calibTimer = null;
+    let calibBeatTimer = null;
+    let calibBeats = [];
+    let calibTaps = [];
+    let calibActive = false;
+
+    function stopCalibration() {
+      calibActive = false;
+      clearInterval(calibBeatTimer);
+      clearTimeout(calibTimer);
+      calibBeatTimer = null;
+      calibTimer = null;
+      calibBeats = [];
+      calibTaps = [];
+      window.removeEventListener("pointerdown", onCalibTap, true);
+      window.removeEventListener("keydown", onCalibKey);
+      if (calibOverlayEl) calibOverlayEl.style.display = "none";
+      if (calibHintEl) calibHintEl.textContent = "聽節拍並依節奏點擊（滑鼠/觸控）或按空白鍵。會取平均差值自動調整判定。";
+      if (calibProgressEl) calibProgressEl.textContent = "0 / 12";
+    }
+
+    function finalizeCalibration() {
+      calibActive = false;
+      const samples = calibTaps.slice();
+      stopCalibration();
+      if (!samples.length) {
+        enqueueToast("尚未取得樣本，請再試一次");
+        return;
+      }
+      const sorted = samples.slice().sort((a, b) => a - b);
+      const trimmed =
+        sorted.length > 4 ? sorted.slice(1, sorted.length - 1) : sorted;
+      const avg =
+        trimmed.reduce((a, b) => a + b, 0) / Math.max(1, trimmed.length);
+      setAutoOffset(avg, { persist: true });
+      const sign = avg > 0 ? "+" : "";
+      enqueueToast(`校準完成：${sign}${Math.round(avg)} ms`);
+    }
+
+    function onCalibTap(ev) {
+      if (!calibActive) return;
+      const t = performance.now();
+      if (!calibBeats.length) return;
+      const idx = Math.min(calibTaps.length, calibBeats.length - 1);
+      const target = calibBeats[idx];
+      const dt = t - target;
+      calibTaps.push(dt);
+      if (calibProgressEl)
+        calibProgressEl.textContent = `${calibTaps.length} / ${CALIB_BEATS}`;
+    }
+
+    function onCalibKey(e) {
+      if (e.code === "Space" || e.key === " ") {
+        e.preventDefault();
+        onCalibTap(e);
+      }
+    }
+
+    function startCalibration() {
+      calibActive = true;
+      calibBeats = [];
+      calibTaps = [];
+      const startT = performance.now() + 400;
+      for (let i = 0; i < CALIB_BEATS; i++) {
+        calibBeats.push(startT + i * CALIB_INTERVAL);
+      }
+      let beatIdx = 0;
+      if (calibHintEl) calibHintEl.textContent = "跟著節拍點擊，盡量穩定即可。";
+      if (calibProgressEl) calibProgressEl.textContent = "0 / 12";
+      // 節拍提示音
+      stopSynthBgm();
+      ensureAudio();
+      calibBeatTimer = setInterval(() => {
+        playBgmTone(60 + (beatIdx % 4) * 2, 0.12);
+        beatIdx++;
+        if (beatIdx >= CALIB_BEATS) clearInterval(calibBeatTimer);
+      }, CALIB_INTERVAL);
+      // 自動結束
+      calibTimer = setTimeout(finalizeCalibration, CALIB_INTERVAL * CALIB_BEATS + 800);
+      window.addEventListener("pointerdown", onCalibTap, true);
+      window.addEventListener("keydown", onCalibKey);
+    }
+
+    function openCalibration() {
+      stopCalibration();
+      calibActive = false;
+      if (game) game.running = false;
+      if (calibOverlayEl) calibOverlayEl.style.display = "flex";
+    }
+    function renderChallengeCard() {
+      if (!challengeTitleEl || !challengeMetaEl || !challengeDescEl) return;
+      const pick = SONGS?.[0];
+      if (!pick) return;
+      challengeTitleEl.textContent = pick.name;
+      const diffLabel = pick.diff ? pick.diff : "Normal";
+      challengeMetaEl.textContent = `${pick.bpm} BPM · ${diffLabel}`;
+      challengeDescEl.textContent =
+        pick.tip || "三十秒限時，先 warm-up 再衝刺排行榜！";
+      if (challengeRewardEl) challengeRewardEl.textContent = "今日 +10% 分數";
     }
 
     function applyCompactUI(on) {
@@ -3038,6 +3434,12 @@
     const WHITE_LANES = [0, 2, 4, 5, 7, 9, 11];
     const BLACK_LANES = [1, 3, 6, 8, 10];
     const MOBILE_FREE_WHITE = [0, 2, 4, 5, 7, 9, 11, 12];
+    const DESKTOP8_MAP = [0, 1, 2, 3, 4, 5, 6, 7, 5, 6, 7, 7];
+    function mapLaneToDesktop8(lane) {
+      if (lane < 0) return lane;
+      if (lane < DESKTOP8_MAP.length) return DESKTOP8_MAP[lane];
+      return Math.min(7, lane);
+    }
     const MOBILE4_GROUP_SIZE = 3;
     function mapLaneToMobile4(lane) {
       if (lane < 0) return lane;
@@ -3047,7 +3449,7 @@
     const LAYOUTS = {
       desktop: {
         id: "desktop",
-        lanes: 12,
+        lanes: 8,
         keyMap: {
           a: 0,
           w: 1,
@@ -3063,7 +3465,7 @@
           l: 11,
         },
         midiOffset: (lane) => lane,
-        mapLane: (lane) => lane,
+        mapLane: (lane) => mapLaneToDesktop8(lane),
         whiteLanes: WHITE_LANES,
         blackLanes: BLACK_LANES,
         freeLabels: {
@@ -3364,12 +3766,9 @@
       }
       storage.set(BG_STYLE_KEY, picked);
     };
-    const storedBgStyle = storage.get(BG_STYLE_KEY) || "aurora";
+    const storedBgStyle = "firework";
     if (bgStyleSel) {
-      const initialBg =
-        BG_STYLE_LIST.includes(storedBgStyle) || storedBgStyle === "classic"
-          ? storedBgStyle
-          : "aurora";
+      const initialBg = "firework";
       bgStyleSel.value = initialBg;
       applyBgStyle(initialBg);
       bgStyleSel.addEventListener("change", () => applyBgStyle(bgStyleSel.value));
@@ -3385,7 +3784,7 @@
 
     /* Lane 幾何 */
     function makeLaneGeometry() {
-      if (currentLayoutId === "desktop") {
+      if (currentLayoutId === "desktop" && currentLayout.lanes === 12) {
         const whiteW = 100 / 7;
         const blackW = whiteW * 0.6;
         const geo = {};
@@ -4293,9 +4692,9 @@
       const vh = window.innerHeight || 800;
       const isPortrait =
         window.matchMedia && window.matchMedia("(orientation: portrait)").matches;
-      const target = Math.round(
-        Math.max(50, Math.min(110, vh * (isPortrait ? 0.12 : 0.16)))
-      );
+      // 調低 hitline 的 bottom，拉開起始線與 Perfect 線的距離（桌機更明顯）
+      const base = vh * (isPortrait ? 0.1 : 0.07);
+      const target = Math.round(Math.max(44, Math.min(88, base)));
       document.documentElement.style.setProperty(
         "--hitline-bottom",
         `${target}px`
@@ -4346,7 +4745,11 @@
 
     let game = null,
       endTimer = null,
-      autoOffset = 0,
+      autoOffset = (() => {
+        const saved = Number(storage.get(OFFSET_KEY) || 0);
+        if (!Number.isFinite(saved)) return 0;
+        return Math.max(-120, Math.min(120, Math.round(saved)));
+      })(),
       autoSamples = [];
     const tileMap = new Map();
     const AUTO_MAX_SAMPLES = 12;
@@ -4548,7 +4951,6 @@
         drawn: new Set(),
         seq: mappedSeq,
       };
-      autoOffset = 0;
       autoSamples = [];
       freeStartTime = null;
       freeLastHit = null;
@@ -4763,9 +5165,34 @@
       $("#acc").textContent = acc.toFixed(1) + "%";
       $("#score").textContent = game.score;
       $("#combo").textContent = game.combo;
+      const comboHot = game.combo >= 30;
+      playEl?.classList.toggle("combo-hot", comboHot);
+      hitlineEl?.classList.toggle("combo-hot", comboHot);
       const sp = $("#scorePill");
       sp.classList.add("flash");
       setTimeout(() => sp.classList.remove("flash"), 300);
+    }
+
+    function copyResultSummary() {
+      if (!navigator?.clipboard) {
+        enqueueToast("瀏覽器不支援複製，請手動選取文字");
+        return;
+      }
+      const songName = game.song?.name || "自由彈奏";
+      const speedStr = `${Number(speed.value || 1).toFixed(2)}x`;
+      const accText = $("#rAcc")?.textContent || "0%";
+      const bestText = $("#rBest")?.textContent || "—";
+      const text = [
+        "Mew Atelier 戰績",
+        `歌曲：${songName} @${speedStr}`,
+        `Score：${game.score}（最佳 ${bestText}）`,
+        `Accuracy：${accText} · Max Combo：${game.maxCombo}`,
+        `Perfect/Great/Good/Miss：${game.counts.perfect}/${game.counts.great}/${game.counts.good}/${game.counts.miss}`,
+      ].join("\n");
+      navigator.clipboard
+        .writeText(text)
+        .then(() => enqueueToast("戰績已複製，快分享給朋友！"))
+        .catch(() => enqueueToast("複製失敗，請再試一次"));
     }
 
     function trackFreePlay() {
@@ -4914,11 +5341,14 @@
 
       if (!game.running || game.mode !== "songs") return;
 
-      const t = now() - game.t0 - autoOffset;
+      // 以遊戲起始時間為基準取當下時間，不在這裡套用 autoOffset，避免重覆扣除導致判定偏差
+      const t = now() - game.t0;
       const laneInputNum = Number(laneInput);
       if (Number.isNaN(laneInputNum)) return;
 
-      const best = findHitCandidate(t, laneInputNum, idxHint);
+      const mappedLane = mapLaneForLayout(laneInputNum);
+
+      const best = findHitCandidate(t, mappedLane, idxHint);
       // 空鍵 / 超出判定範圍：忽略，不記 Miss，避免後續自動 Miss 重複累計
       if (!best) return;
       handleHit(best, laneInputNum);
@@ -5111,8 +5541,15 @@
 
       checkQuestsOnFinish();
 
-      const msg =
-        encouragements[Math.floor(Math.random() * encouragements.length)];
+      let msg;
+      if (acc >= 98 && game.maxCombo >= 80)
+        msg = "完美接近滿分！下次挑戰更快速度？";
+      else if (acc >= 92)
+        msg = "準度很穩！可以試試 1.2x 或增加黑鍵曲。";
+      else if (acc >= 85)
+        msg = "不錯的節奏感，再多一點 Perfect 就能衝榜。";
+      else
+        msg = "先把節奏踩穩，慢速暖身或做一輪校準會更順手。";
       resultNoteEl.innerHTML = `<span>喵評：</span>${msg}`;
 
       resultEl.classList.add("show");
@@ -5356,6 +5793,7 @@
 
     $("#btnStartNow").addEventListener("click", () => {
       startOverlayEl.style.display = "none";
+      storage.set(ONBOARD_KEY, "1");
       updateFsControls();
       const mode = "songs";
       const song = SONGS[0];
@@ -5365,11 +5803,51 @@
     });
     $("#btnJustView").addEventListener("click", () => {
       startOverlayEl.style.display = "none";
+      storage.set(ONBOARD_KEY, "1");
       updateFsControls();
+    });
+
+    heroStartBtn?.addEventListener("click", () => {
+      handleStartClick();
+      document.querySelector(".panel")?.scrollIntoView({ behavior: "smooth" });
+    });
+
+    heroViewBtn?.addEventListener("click", () => {
+      document.querySelector(".panel")?.scrollIntoView({ behavior: "smooth" });
+    });
+
+    btnOpenCalib?.addEventListener("click", () => {
+      openCalibration();
+    });
+    btnCalibBegin?.addEventListener("click", () => {
+      startCalibration();
+    });
+    btnCalibCancel?.addEventListener("click", () => {
+      stopCalibration();
+    });
+    btnSkipOnboard?.addEventListener("click", () => {
+      onboardOverlayEl.style.display = "none";
+      storage.set(ONBOARD_KEY, "1");
+    });
+    btnOnboardPlay?.addEventListener("click", () => {
+      onboardOverlayEl.style.display = "none";
+      storage.set(ONBOARD_KEY, "1");
+      handleStartClick();
+    });
+    btnResetOffset?.addEventListener("click", resetOffset);
+    btnCopyResult?.addEventListener("click", copyResultSummary);
+    btnNextChallenge?.addEventListener("click", () => {
+      // 直接套用今日挑戰曲，並調到 1.2x 再開始
+      if (songSel) songSel.value = SONGS[0].id;
+      speed.value = "1.20";
+      speed.dispatchEvent(new Event("input"));
+      document.querySelector(".panel")?.scrollIntoView({ behavior: "smooth" });
+      handleStartClick();
     });
 
     (function init() {
       initHintToggle();
+      renderChallengeCard();
       selectLayoutForViewport();
       buildLanesOnce();
       applyLayout(currentLayoutId);
@@ -5380,6 +5858,12 @@
       renderQuests();
       renderChapters();
       updateFsControls();
+      updateOffsetUI();
+      const seenOnboard = storage.get(ONBOARD_KEY) === "1";
+      if (seenOnboard && startOverlayEl) startOverlayEl.style.display = "none";
+      if (!seenOnboard && onboardOverlayEl) {
+        onboardOverlayEl.style.display = "flex";
+      }
     })();
   </script>
   <!-- Code injected by live-server -->
