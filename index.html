@@ -1690,6 +1690,7 @@
             calc(((100vw - 48px) / var(--lane-count, 6)) + 12px),
             190px);
         --hitline-bottom: 70px;
+        /* 預設顯示提示時的遊戲區高度 */
         --text: #111111;
       }
 
@@ -1698,7 +1699,8 @@
       }
 
       body.hints-hidden {
-        --play-height: calc(82dvh - 40px);
+        /* 隱藏提示時回收垂直空間，讓琴面更高 */
+        --play-height: calc(94dvh - 32px);
       }
 
       .cat-column {
@@ -2294,6 +2296,7 @@
       <div class="settings-group">
         <div class="settings-label">音色</div>
         <select id="toneSel">
+          <option value="piano" selected>Acoustic Piano</option>
           <option value="soft">Soft Piano</option>
           <option value="bright">Bright Keys</option>
           <option value="bell">Dream Bell</option>
@@ -3099,12 +3102,7 @@
     let audioCtx = null,
       masterGain = null,
       bgmGain = null,
-      currentTone = "soft";
-    const tonePresets = {
-      soft: { attack: 0.02, release: 0.4, type: "sine", detune: 0 },
-      bright: { attack: 0.01, release: 0.5, type: "triangle", detune: 8 },
-      synth: { attack: 0.02, release: 0.6, type: "sawtooth", detune: 0 },
-    };
+      currentTone = "piano";
     let currentLayoutId = "desktop";
     let currentLayout = LAYOUTS.desktop;
     let keyMap = { ...LAYOUTS.desktop.keyMap };
@@ -3210,7 +3208,11 @@
         try {
           bgm.currentTime = 0;
           await bgm.play();
-          const dur = 30000 / speedVal;
+          const lengthSec =
+            Number.isFinite(song.lengthSec) && song.lengthSec > 0
+              ? song.lengthSec
+              : 30;
+          const dur = (lengthSec * 1000) / speedVal;
           bgmStopTimer = setTimeout(() => {
             try {
               bgm.pause();
@@ -3251,33 +3253,44 @@
       return typeof off === "number" ? off : null;
     }
 
-    function playSynthByLane(lane, dur = 0.2, midiOverride = null) {
+    function playSynthByLane(lane, dur = 0.28, midiOverride = null) {
       if (!audioCtx || !masterGain) return;
       const nowT = audioCtx.currentTime;
       const freq = midiToFreq(laneToMidi(lane, midiOverride));
+      const baseDur = Math.max(0.28, dur);
 
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
+      let filter = null;
 
       let attack = 0.012;
-      let release = dur;
+      let release = baseDur;
       let type = "sine";
 
       switch (currentTone) {
         case "soft":
           type = "sine";
           attack = 0.012;
-          release = dur + 0.04;
+          release = baseDur + 0.14;
+          break;
+        case "piano":
+          type = "sine";
+          attack = 0.0035;
+          release = baseDur + 0.42;
+          filter = audioCtx.createBiquadFilter();
+          filter.type = "lowpass";
+          filter.frequency.setValueAtTime(Math.min(6800, freq * 3.2), nowT);
+          filter.Q.value = 0.6;
           break;
         case "bright":
           type = "square";
           attack = 0.006;
-          release = dur;
+          release = baseDur + 0.08;
           break;
         case "bell":
           type = "sine";
           attack = 0.004;
-          release = dur + 0.18;
+          release = baseDur + 0.22;
           // 簡單 FM 鈴聲
           const mod = audioCtx.createOscillator();
           const modGain = audioCtx.createGain();
@@ -3286,28 +3299,51 @@
           mod.connect(modGain);
           modGain.connect(osc.frequency);
           mod.start(nowT);
-          mod.stop(nowT + release);
+          mod.stop(nowT + release + 0.05);
           break;
         case "chiptune":
           type = "square";
           attack = 0.003;
-          release = dur * 0.7;
+          release = baseDur * 0.8;
           break;
         case "saw":
           type = "sawtooth";
           attack = 0.01;
-          release = dur + 0.12;
+          release = baseDur + 0.18;
           break;
       }
 
       osc.type = type;
       osc.frequency.setValueAtTime(freq, nowT);
 
+      const isPiano = currentTone === "piano";
       gain.gain.setValueAtTime(0.0001, nowT);
-      gain.gain.exponentialRampToValueAtTime(0.8, nowT + attack);
+      if (isPiano) {
+        gain.gain.exponentialRampToValueAtTime(0.95, nowT + attack);
+        gain.gain.exponentialRampToValueAtTime(0.32, nowT + attack + 0.18);
+      } else {
+        gain.gain.exponentialRampToValueAtTime(0.8, nowT + attack);
+      }
       gain.gain.exponentialRampToValueAtTime(0.0001, nowT + release);
 
-      osc.connect(gain);
+      const inputNode = filter || gain;
+      if (filter) filter.connect(gain);
+
+      osc.connect(inputNode);
+      if (isPiano) {
+        // 輕微泛音，讓音色更像鋼琴
+        const osc2 = audioCtx.createOscillator();
+        const overGain = audioCtx.createGain();
+        osc2.type = "triangle";
+        osc2.frequency.setValueAtTime(freq * 2, nowT);
+        overGain.gain.setValueAtTime(0.16, nowT);
+        overGain.gain.exponentialRampToValueAtTime(0.0001, nowT + release);
+        osc2.connect(overGain);
+        overGain.connect(inputNode);
+        osc2.start(nowT);
+        osc2.stop(nowT + release + 0.05);
+      }
+
       gain.connect(masterGain);
 
       osc.start(nowT);
@@ -3399,7 +3435,8 @@
       bgmFile,
       baseNote,
       diff,
-      tip
+      tip,
+      lengthSec = 30
     ) {
       const seq = [];
       let i = 0;
@@ -3410,7 +3447,17 @@
           i++;
         }
       }
-      return { id, name, bpm, seq, bgmFile, baseNote, diff, tip };
+      return {
+        id,
+        name,
+        bpm,
+        seq,
+        bgmFile,
+        baseNote,
+        diff,
+        tip,
+        lengthSec,
+      };
     }
     function withRests(seq, every = 8) {
       return seq.map((v, i) => ((i + 1) % every === 0 ? -1 : v));
@@ -3562,8 +3609,22 @@
 
       /* 新增 20 首占位曲 */
 
-      function add(id, name, bpm, motif, file, base, diff, tip, every) {
-        const beats = Math.round(bpm / 2); // 約 30s
+      function add(
+        id,
+        name,
+        bpm,
+        motif,
+        file,
+        base,
+        diff,
+        tip,
+        every,
+        lengthSec = 30
+      ) {
+        const beats = Math.max(
+          motif.length,
+          Math.round((bpm * lengthSec) / 60)
+        );
         const s = makeSong(
           id,
           name,
@@ -3573,7 +3634,8 @@
           file,
           base,
           diff,
-          tip
+          tip,
+          lengthSec
         );
         s.seq = withRests(s.seq, every);
         songs.push(s);
@@ -3797,6 +3859,392 @@
         60,
         "★★☆ 品牌主題",
         "專屬 Mew Atelier 主題曲，用來展示整體作品。",
+        8
+      );
+
+      /* 新增 30 首原創流行風格短曲（<10s，合成伴奏） */
+      add(
+        "swift_echo",
+        "Swift Echo",
+        120,
+        [0, 4, 7, 9, 7, 4],
+        "swift_echo.mp3",
+        60,
+        "★★☆ 亮麗流行",
+        "短副歌跳點，適合疊 Combo。",
+        4,
+        9
+      );
+      add(
+        "city_lights_pop",
+        "City Lights Pop",
+        110,
+        [0, 2, 5, 7, 9, 7, 5, 2],
+        "city_lights_pop.mp3",
+        60,
+        "★☆☆ 都會清新",
+        "規律節奏，入門好打。",
+        4,
+        9
+      );
+      add(
+        "dancefloor_shine",
+        "Dancefloor Shine",
+        128,
+        [0, 4, 7, 11, 12, 11, 7, 4],
+        "dancefloor_shine.mp3",
+        62,
+        "★★★ 派對電音",
+        "高亮旋律，節奏密集。",
+        4,
+        9
+      );
+      add(
+        "midnight_call",
+        "Midnight Call",
+        100,
+        [0, 2, 4, 5, 7, 5, 4, 2],
+        "midnight_call.mp3",
+        60,
+        "★☆☆ 抒情流行",
+        "平穩節奏，適合暖手。",
+        4,
+        8
+      );
+      add(
+        "skyline_run",
+        "Skyline Run",
+        130,
+        [0, 2, 5, 9, 12, 9, 5, 2],
+        "skyline_run.mp3",
+        64,
+        "★★★ 動感",
+        "跨度大，練手指移動。",
+        4,
+        9
+      );
+      add(
+        "neon_heart",
+        "Neon Heartbeat",
+        118,
+        [0, 3, 7, 10, 7, 3, 0],
+        "neon_heartbeat.mp3",
+        60,
+        "★★☆ 復古感",
+        "黑鍵穿插，注意定位。",
+        4,
+        8
+      );
+      add(
+        "golden_hour_love",
+        "Golden Hour Love",
+        105,
+        [0, 2, 5, 7, 9, 7, 5, 2],
+        "golden_hour_love.mp3",
+        60,
+        "★☆☆ 溫柔",
+        "旋律流暢，適合放鬆。",
+        4,
+        9
+      );
+      add(
+        "spark_pop",
+        "Spark Pop",
+        132,
+        [0, 2, 4, 7, 9, 7, 4, 2],
+        "spark_pop.mp3",
+        60,
+        "★★☆ 元氣",
+        "節奏明亮，Combo 練習。",
+        4,
+        9
+      );
+      add(
+        "rainbow_steps",
+        "Rainbow Steps",
+        112,
+        [0, 2, 5, 7, 10, 7, 5, 2],
+        "rainbow_steps.mp3",
+        60,
+        "★☆☆ 輕快",
+        "跳點適中，新手友善。",
+        4,
+        9
+      );
+      add(
+        "moonbeam_song",
+        "Moonbeam Song",
+        96,
+        [0, -1, 3, 5, 7, 8, 7, 5],
+        "moonbeam_song.mp3",
+        58,
+        "★☆☆ 慢板",
+        "長尾旋律，專注判定。",
+        4,
+        9
+      );
+      add(
+        "firefly_pop",
+        "Firefly Pop",
+        124,
+        [0, 2, 5, 9, 12, 9, 5, 2],
+        "firefly_pop.mp3",
+        62,
+        "★★☆ 亮晶晶",
+        "跨度大，注意手感。",
+        4,
+        9
+      );
+      add(
+        "candy_rush",
+        "Candy Rush",
+        126,
+        [0, 4, 7, 9, 11, 9, 7, 4],
+        "candy_rush.mp3",
+        62,
+        "★★★ 甜系電音",
+        "節奏緊湊，適合刷分。",
+        4,
+        8
+      );
+      add(
+        "street_story",
+        "Street Story",
+        108,
+        [0, 1, 3, 5, 8, 5, 3, 1],
+        "street_story.mp3",
+        60,
+        "★☆☆ 都會抒情",
+        "旋律線性，易上手。",
+        4,
+        9
+      );
+      add(
+        "summer_flash",
+        "Summer Flash",
+        122,
+        [0, 2, 4, 7, 9, 7, 4, 2],
+        "summer_flash.mp3",
+        60,
+        "★★☆ 夏日",
+        "副歌密集，節奏感強。",
+        4,
+        9
+      );
+      add(
+        "retro_wave_short",
+        "Retro Wave Short",
+        128,
+        [0, 4, 7, 11, 14, 11, 7, 4],
+        "retro_wave_short.mp3",
+        64,
+        "★★★ 復古勁",
+        "高音跨度大，練移動。",
+        4,
+        9
+      );
+      add(
+        "coffee_chat_short",
+        "Coffee Chat Short",
+        102,
+        [0, 2, 4, 5, 7, 5, 4, 2],
+        "coffee_chat_short.mp3",
+        60,
+        "★☆☆ 輕鬆",
+        "規律進行，放鬆玩。",
+        4,
+        8
+      );
+      add(
+        "youth_light",
+        "Youth Light",
+        118,
+        [0, 2, 5, 7, 9, 11, 9, 7],
+        "youth_light.mp3",
+        62,
+        "★★☆ 青春",
+        "節奏緊湊，適合刷分。",
+        4,
+        9
+      );
+      add(
+        "echo_star",
+        "Echo Star",
+        114,
+        [0, 3, 5, 7, 10, 7, 5, 3],
+        "echo_star.mp3",
+        60,
+        "★★☆ 星空",
+        "黑鍵點綴，旋律悠長。",
+        4,
+        9
+      );
+      add(
+        "after_class",
+        "After Class",
+        106,
+        [0, 2, 4, 5, 7, 5, 4, 2],
+        "after_class.mp3",
+        60,
+        "★☆☆ 校園",
+        "易上手，適合新手。",
+        4,
+        8
+      );
+      add(
+        "festival_jump",
+        "Festival Jump",
+        132,
+        [0, 2, 5, 9, 12, 9, 5, 2],
+        "festival_jump.mp3",
+        64,
+        "★★★ 節慶",
+        "跳點大，練習左右移。",
+        4,
+        9
+      );
+      add(
+        "letter_home",
+        "Letter Home",
+        98,
+        [0, 2, 4, 7, 9, 11, 9, 7],
+        "letter_home.mp3",
+        60,
+        "★☆☆ 溫暖",
+        "旋律堆疊，節奏穩。",
+        4,
+        9
+      );
+      add(
+        "lost_in_city",
+        "Lost in City",
+        120,
+        [0, 4, 7, 9, 11, 9, 7, 4],
+        "lost_in_city.mp3",
+        62,
+        "★★☆ 都會",
+        "副歌密集，刷高分。",
+        4,
+        9
+      );
+      add(
+        "quiet_rain",
+        "Quiet Rain",
+        92,
+        [0, -1, 2, -1, 5, -1, 7, -1],
+        "quiet_rain.mp3",
+        55,
+        "★☆☆ 靜謐",
+        "低壓力，專注音色。",
+        4,
+        9
+      );
+      add(
+        "firefly_lane_short",
+        "Firefly Lane Short",
+        116,
+        [0, 2, 5, 7, 10, 7, 5, 2],
+        "firefly_lane_short.mp3",
+        60,
+        "★☆☆ 童話",
+        "跳躍適中，日常練習。",
+        4,
+        9
+      );
+      add(
+        "silver_flash",
+        "Silver Flash",
+        134,
+        [0, 3, 7, 10, 14, 10, 7, 3],
+        "silver_flash.mp3",
+        64,
+        "★★★ 電音",
+        "高音延伸，考驗反應。",
+        4,
+        9
+      );
+      add(
+        "homebound",
+        "Homebound",
+        104,
+        [0, 2, 4, 5, 7, 5, 4, 2],
+        "homebound.mp3",
+        60,
+        "★☆☆ 溫馨",
+        "熟悉進行，放鬆刷任務。",
+        4,
+        8
+      );
+      add(
+        "stargaze_pop",
+        "Stargaze Pop",
+        126,
+        [0, 2, 5, 9, 11, 9, 5, 2],
+        "stargaze_pop.mp3",
+        62,
+        "★★☆ 星空元氣",
+        "跨度大，注意手感。",
+        4,
+        9
+      );
+      add(
+        "soft_breeze",
+        "Soft Breeze",
+        100,
+        [0, 2, 4, 7, 9, 7, 4, 2],
+        "soft_breeze.mp3",
+        60,
+        "★☆☆ 治癒",
+        "旋律柔和，易判定。",
+        4,
+        9
+      );
+      add(
+        "spark_travel",
+        "Spark Travel",
+        124,
+        [0, 4, 7, 11, 12, 11, 7, 4],
+        "spark_travel.mp3",
+        64,
+        "★★★ 動感旅程",
+        "節奏快，刷分佳。",
+        4,
+        9
+      );
+      add(
+        "tiny_love_song",
+        "Tiny Love Song",
+        108,
+        [0, 2, 5, 7, 9, 7, 5, 2],
+        "tiny_love_song.mp3",
+        60,
+        "★☆☆ 短抒情",
+        "副歌短小，易連擊。",
+        4,
+        8
+      );
+      add(
+        "violet_night",
+        "Violet Night",
+        116,
+        [0, 3, 7, 10, 7, 3, 0],
+        "violet_night.mp3",
+        60,
+        "★★☆ 夜色",
+        "黑鍵穿插，練準度。",
+        4,
+        9
+      );
+      add(
+        "warm_smile",
+        "Warm Smile",
+        102,
+        [0, 2, 4, 5, 7, 5, 4, 2],
+        "warm_smile.mp3",
+        60,
+        "★☆☆ 暖系",
+        "規律節奏，新手友善。",
+        4,
         8
       );
 
