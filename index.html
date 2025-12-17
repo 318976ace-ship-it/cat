@@ -5115,12 +5115,13 @@
 
     function autoMiss(t) {
       if (game.mode !== "songs" || !game.song) return;
-      const idx = currentBeatIndex(t);
+      const tAdj = t + autoOffset;
+      const idx = currentBeatIndex(tAdj);
       const prev = idx - 1;
       if (prev >= 0 && !game.judged[prev]) {
         if (!game.drawn.has(prev)) return;
         const endTime = (prev + 1) * game.beatMs;
-        const late = t - autoOffset - endTime;
+        const late = tAdj - endTime;
         if (late > CONFIG.WIN.good + 40) {
           game.judged[prev] = true;
           removeTile(prev);
