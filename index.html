@@ -3858,8 +3858,9 @@
         lengthSec,
       };
     }
-    function withRests(seq, every = 8) {
-      return seq.map((v, i) => ((i + 1) % every === 0 ? -1 : v));
+    function withRests(seq) {
+      // 原本為了放鬆節奏會在固定間隔插入休止，改成直接回傳原序列以確保方塊不會有空窗停頓
+      return seq;
     }
 
     /* 30 首歌（前 10 原本 + 新增 20 首） */
