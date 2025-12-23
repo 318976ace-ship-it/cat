@@ -5,7 +5,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>
-    鋼琴小遊戲 · Mew Atelier（真實鋼琴黑白層次 · 12 鍵 · 30 首 30s BGM）
+    鋼琴小遊戲 · Mew Atelier（真實鋼琴黑白層次 · 12 鍵）
   </title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;800;900&display=swap"
     rel="stylesheet" />
@@ -1192,6 +1192,111 @@
       opacity: 1;
     }
 
+    .song-keys-hint {
+      position: absolute;
+      top: 14px;
+      left: 16px;
+      padding: 8px 12px;
+      font-size: 12px;
+      letter-spacing: 0.5px;
+      background: rgba(22, 32, 60, 0.7);
+      color: #f6f1ff;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: 999px;
+      box-shadow: 0 6px 16px rgba(16, 22, 40, 0.25);
+      z-index: 5;
+      backdrop-filter: blur(6px);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .play.free-mode .song-keys-hint {
+      opacity: 0;
+      transform: translateY(-6px);
+      pointer-events: none;
+    }
+
+    body.hints-hidden .song-keys-hint {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .play.show-song-keys-onboard .song-keys-hint {
+      animation: song-keys-pulse 1.1s ease-in-out 2;
+    }
+
+    @keyframes song-keys-pulse {
+      0% { transform: translateY(0) scale(1); box-shadow: 0 6px 16px rgba(16, 22, 40, 0.25); }
+      40% { transform: translateY(-2px) scale(1.03); box-shadow: 0 10px 18px rgba(80, 120, 255, 0.35); }
+      100% { transform: translateY(0) scale(1); box-shadow: 0 6px 16px rgba(16, 22, 40, 0.25); }
+    }
+
+    .song-keys-onboard {
+      position: absolute;
+      left: 50%;
+      bottom: 16px;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      background: rgba(18, 24, 44, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 999px;
+      box-shadow: 0 10px 24px rgba(12, 16, 30, 0.25);
+      color: #f4f1ff;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 5;
+      transition: opacity 0.2s ease;
+      backdrop-filter: blur(6px);
+    }
+
+    .song-keys-onboard .label {
+      font-size: 11px;
+      letter-spacing: 0.4px;
+      opacity: 0.85;
+      margin-right: 2px;
+    }
+
+    .song-keys-onboard .keycap {
+      min-width: 20px;
+      padding: 4px 7px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: 8px;
+      box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+    }
+
+    .play.show-song-keys-onboard .song-keys-onboard {
+      opacity: 1;
+    }
+
+    .play.show-song-keys-onboard .song-keys-onboard .keycap {
+      animation: keycap-pop 1.05s ease-in-out 1;
+      animation-delay: var(--delay);
+    }
+
+    .play.free-mode .song-keys-onboard {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    body.hints-hidden .song-keys-onboard {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    @keyframes keycap-pop {
+      0% { transform: translateY(0) scale(1); }
+      35% { transform: translateY(-4px) scale(1.08); }
+      70% { transform: translateY(1px) scale(0.98); }
+      100% { transform: translateY(0) scale(1); }
+    }
+
     .result {
       position: fixed;
       inset: 0;
@@ -2173,7 +2278,7 @@
         真實鋼琴 12 鍵 · 掉落方塊節奏 · 任務成就 · 本機排行榜
       </div>
       <ul class="start-list">
-        <li>使用 A S D F J K L / W E T Y U 操作真實黑白鍵配置。</li>
+        <li>自由彈奏：A S D F J K L / W E T Y U 操作真實黑白鍵配置；歌曲模式 8 鍵：A W S E D F T J。</li>
         <li>完成章節任務，解鎖「新手 · 穩定 · 高手」進度。</li>
         <li>挑戰高分進排行榜，展示你的貓掌手速。</li>
       </ul>
@@ -2215,9 +2320,7 @@
         鋼琴小遊戲 · Mew Atelier
       </div>
       <div class="nav-right">
-        <div class="muted mini">
-          鍵盤：A S D F J K L（白鍵） · W E T Y U（黑鍵） · 可點欄位/方塊/琴鍵
-        </div>
+        <div class="muted mini">鍵盤（自由彈奏）：A S D F J K L（白鍵） · W E T Y U（黑鍵） · 歌曲模式 8 鍵：A W S E D F T J · 可點欄位/方塊/琴鍵</div>
         <button id="btnRank" class="secondary small badge-btn">
           <span class="badge-dot"></span>🏆 排行榜
         </button>
@@ -2233,7 +2336,7 @@
           <div class="eyebrow">今日挑戰</div>
           <h1 class="hero-title">Mew Atelier · 12 鍵節奏琴</h1>
           <p class="hero-sub">
-            30 首 30 秒 BGM、真實黑白鍵排列，支援鍵盤、滑鼠/觸控。收起提示放大琴面，或直接進入今日挑戰拿更高分！
+            真實黑白鍵排列，支援鍵盤、滑鼠/觸控。收起提示放大琴面，或直接進入今日挑戰拿更高分！
           </p>
           <div class="hero-actions">
             <button id="btnHeroStart" class="btn-cta btn-primary-large">
@@ -2243,7 +2346,7 @@
               先看看介面
             </button>
           </div>
-          <div class="hero-note">鍵位：A S D F / J K L 白鍵 · W E T Y U 黑鍵 · 支援全螢幕</div>
+          <div class="hero-note">自由彈奏鍵位：A S D F / J K L 白鍵 · W E T Y U 黑鍵 · 支援全螢幕</div>
         </div>
 
         <div class="challenge-card" id="challengeCard">
@@ -2371,6 +2474,18 @@
           <div id="judge" class="judge">PERFECT</div>
           <div id="comboLabel" class="combo-label"></div>
           <div id="countdown" class="countdown"></div>
+          <div class="song-keys-hint" id="songKeysHint">歌曲模式 8 鍵：A W S E D F T J</div>
+          <div class="song-keys-onboard" id="songKeysOnboard" aria-hidden="true">
+            <span class="label">歌曲模式 8 鍵</span>
+            <span class="keycap" style="--delay: 0s">A</span>
+            <span class="keycap" style="--delay: 0.06s">W</span>
+            <span class="keycap" style="--delay: 0.12s">S</span>
+            <span class="keycap" style="--delay: 0.18s">E</span>
+            <span class="keycap" style="--delay: 0.24s">D</span>
+            <span class="keycap" style="--delay: 0.3s">F</span>
+            <span class="keycap" style="--delay: 0.36s">T</span>
+            <span class="keycap" style="--delay: 0.42s">J</span>
+          </div>
           <div class="free-hint">
             這裡沒有方塊，只有你跟琴鍵的時間。隨意彈、隨意創作吧 🐾
           </div>
@@ -2424,7 +2539,7 @@
           <div class="cat-sticker">
             <div class="cat-emoji">🐾</div>
             <strong>鍵位小抄</strong>
-            <div>A S D F / J K L 是白鍵，W E T Y U 是黑鍵。</div>
+            <div>自由彈奏：A S D F / J K L 是白鍵，W E T Y U 是黑鍵；歌曲模式 8 鍵：A W S E D F T J。</div>
           </div>
           <div class="cat-sticker">
             <div class="cat-emoji">🎧</div>
@@ -2717,6 +2832,7 @@
     const HINT_VIS_KEY = "mew_hint_visibility_v1";
     const OFFSET_KEY = "mew_offset_v1";
     const ONBOARD_KEY = "mew_onboarding_seen_v1";
+    const SONG_KEYS_ONBOARD_KEY = "mew_song_keys_onboard_v1";
     const QUEST_KEY = "mew_quests_v1";
     const LB_KEY = "mew_leaderboard_v1";
 
@@ -2985,6 +3101,13 @@
     }
 
     const QUEST_DEFS = [
+      {
+        id: "Q0_song_keys",
+        title: "????????",
+        desc: "?????? 8 ??A W S E D F T J??",
+        tag: "??",
+        chapter: "ch1",
+      },
       {
         id: "Q1_first_clear",
         title: "第一次的喵之音",
@@ -3273,6 +3396,15 @@
       }, 150);
     }
     toastCloseEl.addEventListener("click", hideToastAndNext);
+    function maybeShowSongKeysOnboard() {
+      if (currentMode() !== "songs") return;
+      if (storage.get(SONG_KEYS_ONBOARD_KEY) === "1") return;
+      storage.set(SONG_KEYS_ONBOARD_KEY, "1");
+      playEl.classList.add("show-song-keys-onboard");
+      enqueueToast("歌曲模式 8 鍵：A W S E D F T J");
+      setTimeout(() => playEl.classList.remove("show-song-keys-onboard"), 2400);
+    }
+
 
     function todayStr() {
       return new Date().toISOString().slice(0, 10);
@@ -4041,6 +4173,62 @@
         songs.push(s);
       }
 
+      function buildSectionSeq(verse, chorus, beats) {
+        const plan = [
+          { kind: "verse", w: 2 },
+          { kind: "verse", w: 2 },
+          { kind: "chorus", w: 3 },
+          { kind: "verse", w: 2 },
+          { kind: "chorus", w: 3 },
+        ];
+        const total = plan.reduce((s, p) => s + p.w, 0);
+        let remain = beats;
+        const seq = [];
+        plan.forEach((p, idx) => {
+          const take = idx === plan.length - 1 ? remain : Math.max(1, Math.round((beats * p.w) / total));
+          remain -= take;
+          const motif = p.kind === "verse" ? verse : chorus;
+          for (let i = 0; i < take; i++) seq.push(motif[i % motif.length]);
+        });
+        return seq.slice(0, beats);
+      }
+      
+      function addSegmented(
+        id,
+        name,
+        bpm,
+        verse,
+        chorus,
+        file,
+        base,
+        diff,
+        tip,
+        every,
+        lengthSec = 30
+      ) {
+        const beats = Math.max(
+          verse.length,
+          chorus.length,
+          Math.round((bpm * lengthSec) / 60)
+        );
+        const seq = buildSectionSeq(verse, chorus, beats);
+        const s = makeSong(
+          id,
+          name,
+          bpm,
+          beats,
+          verse,
+          file,
+          base,
+          diff,
+          tip,
+          lengthSec
+        );
+        s.seq = withRests(seq, every);
+        songs.push(s);
+      }
+      
+
       add(
         "city_night_pop",
         "City Night Pop (30s)",
@@ -4263,391 +4451,38 @@
       );
 
       /* 新增 30 首原創流行風格短曲（<10s，合成伴奏） */
-      add(
-        "swift_echo",
-        "Swift Echo",
-        120,
-        [0, 4, 7, 9, 7, 4],
-        "swift_echo.mp3",
-        60,
-        "★★☆ 亮麗流行",
-        "短副歌跳點，適合疊 Combo。",
-        4,
-        9
-      );
-      add(
-        "city_lights_pop",
-        "City Lights Pop",
-        110,
-        [0, 2, 5, 7, 9, 7, 5, 2],
-        "city_lights_pop.mp3",
-        60,
-        "★☆☆ 都會清新",
-        "規律節奏，入門好打。",
-        4,
-        9
-      );
-      add(
-        "dancefloor_shine",
-        "Dancefloor Shine",
-        128,
-        [0, 4, 7, 11, 12, 11, 7, 4],
-        "dancefloor_shine.mp3",
-        62,
-        "★★★ 派對電音",
-        "高亮旋律，節奏密集。",
-        4,
-        9
-      );
-      add(
-        "midnight_call",
-        "Midnight Call",
-        100,
-        [0, 2, 4, 5, 7, 5, 4, 2],
-        "midnight_call.mp3",
-        60,
-        "★☆☆ 抒情流行",
-        "平穩節奏，適合暖手。",
-        4,
-        8
-      );
-      add(
-        "skyline_run",
-        "Skyline Run",
-        130,
-        [0, 2, 5, 9, 12, 9, 5, 2],
-        "skyline_run.mp3",
-        64,
-        "★★★ 動感",
-        "跨度大，練手指移動。",
-        4,
-        9
-      );
-      add(
-        "neon_heart",
-        "Neon Heartbeat",
-        118,
-        [0, 3, 7, 10, 7, 3, 0],
-        "neon_heartbeat.mp3",
-        60,
-        "★★☆ 復古感",
-        "黑鍵穿插，注意定位。",
-        4,
-        8
-      );
-      add(
-        "golden_hour_love",
-        "Golden Hour Love",
-        105,
-        [0, 2, 5, 7, 9, 7, 5, 2],
-        "golden_hour_love.mp3",
-        60,
-        "★☆☆ 溫柔",
-        "旋律流暢，適合放鬆。",
-        4,
-        9
-      );
-      add(
-        "spark_pop",
-        "Spark Pop",
-        132,
-        [0, 2, 4, 7, 9, 7, 4, 2],
-        "spark_pop.mp3",
-        60,
-        "★★☆ 元氣",
-        "節奏明亮，Combo 練習。",
-        4,
-        9
-      );
-      add(
-        "rainbow_steps",
-        "Rainbow Steps",
-        112,
-        [0, 2, 5, 7, 10, 7, 5, 2],
-        "rainbow_steps.mp3",
-        60,
-        "★☆☆ 輕快",
-        "跳點適中，新手友善。",
-        4,
-        9
-      );
-      add(
-        "moonbeam_song",
-        "Moonbeam Song",
-        96,
-        [0, -1, 3, 5, 7, 8, 7, 5],
-        "moonbeam_song.mp3",
-        58,
-        "★☆☆ 慢板",
-        "長尾旋律，專注判定。",
-        4,
-        9
-      );
-      add(
-        "firefly_pop",
-        "Firefly Pop",
-        124,
-        [0, 2, 5, 9, 12, 9, 5, 2],
-        "firefly_pop.mp3",
-        62,
-        "★★☆ 亮晶晶",
-        "跨度大，注意手感。",
-        4,
-        9
-      );
-      add(
-        "candy_rush",
-        "Candy Rush",
-        126,
-        [0, 4, 7, 9, 11, 9, 7, 4],
-        "candy_rush.mp3",
-        62,
-        "★★★ 甜系電音",
-        "節奏緊湊，適合刷分。",
-        4,
-        8
-      );
-      add(
-        "street_story",
-        "Street Story",
-        108,
-        [0, 1, 3, 5, 8, 5, 3, 1],
-        "street_story.mp3",
-        60,
-        "★☆☆ 都會抒情",
-        "旋律線性，易上手。",
-        4,
-        9
-      );
-      add(
-        "summer_flash",
-        "Summer Flash",
-        122,
-        [0, 2, 4, 7, 9, 7, 4, 2],
-        "summer_flash.mp3",
-        60,
-        "★★☆ 夏日",
-        "副歌密集，節奏感強。",
-        4,
-        9
-      );
-      add(
-        "retro_wave_short",
-        "Retro Wave Short",
-        128,
-        [0, 4, 7, 11, 14, 11, 7, 4],
-        "retro_wave_short.mp3",
-        64,
-        "★★★ 復古勁",
-        "高音跨度大，練移動。",
-        4,
-        9
-      );
-      add(
-        "coffee_chat_short",
-        "Coffee Chat Short",
-        102,
-        [0, 2, 4, 5, 7, 5, 4, 2],
-        "coffee_chat_short.mp3",
-        60,
-        "★☆☆ 輕鬆",
-        "規律進行，放鬆玩。",
-        4,
-        8
-      );
-      add(
-        "youth_light",
-        "Youth Light",
-        118,
-        [0, 2, 5, 7, 9, 11, 9, 7],
-        "youth_light.mp3",
-        62,
-        "★★☆ 青春",
-        "節奏緊湊，適合刷分。",
-        4,
-        9
-      );
-      add(
-        "echo_star",
-        "Echo Star",
-        114,
-        [0, 3, 5, 7, 10, 7, 5, 3],
-        "echo_star.mp3",
-        60,
-        "★★☆ 星空",
-        "黑鍵點綴，旋律悠長。",
-        4,
-        9
-      );
-      add(
-        "after_class",
-        "After Class",
-        106,
-        [0, 2, 4, 5, 7, 5, 4, 2],
-        "after_class.mp3",
-        60,
-        "★☆☆ 校園",
-        "易上手，適合新手。",
-        4,
-        8
-      );
-      add(
-        "festival_jump",
-        "Festival Jump",
-        132,
-        [0, 2, 5, 9, 12, 9, 5, 2],
-        "festival_jump.mp3",
-        64,
-        "★★★ 節慶",
-        "跳點大，練習左右移。",
-        4,
-        9
-      );
-      add(
-        "letter_home",
-        "Letter Home",
-        98,
-        [0, 2, 4, 7, 9, 11, 9, 7],
-        "letter_home.mp3",
-        60,
-        "★☆☆ 溫暖",
-        "旋律堆疊，節奏穩。",
-        4,
-        9
-      );
-      add(
-        "lost_in_city",
-        "Lost in City",
-        120,
-        [0, 4, 7, 9, 11, 9, 7, 4],
-        "lost_in_city.mp3",
-        62,
-        "★★☆ 都會",
-        "副歌密集，刷高分。",
-        4,
-        9
-      );
-      add(
-        "quiet_rain",
-        "Quiet Rain",
-        92,
-        [0, -1, 2, -1, 5, -1, 7, -1],
-        "quiet_rain.mp3",
-        55,
-        "★☆☆ 靜謐",
-        "低壓力，專注音色。",
-        4,
-        9
-      );
-      add(
-        "firefly_lane_short",
-        "Firefly Lane Short",
-        116,
-        [0, 2, 5, 7, 10, 7, 5, 2],
-        "firefly_lane_short.mp3",
-        60,
-        "★☆☆ 童話",
-        "跳躍適中，日常練習。",
-        4,
-        9
-      );
-      add(
-        "silver_flash",
-        "Silver Flash",
-        134,
-        [0, 3, 7, 10, 14, 10, 7, 3],
-        "silver_flash.mp3",
-        64,
-        "★★★ 電音",
-        "高音延伸，考驗反應。",
-        4,
-        9
-      );
-      add(
-        "homebound",
-        "Homebound",
-        104,
-        [0, 2, 4, 5, 7, 5, 4, 2],
-        "homebound.mp3",
-        60,
-        "★☆☆ 溫馨",
-        "熟悉進行，放鬆刷任務。",
-        4,
-        8
-      );
-      add(
-        "stargaze_pop",
-        "Stargaze Pop",
-        126,
-        [0, 2, 5, 9, 11, 9, 5, 2],
-        "stargaze_pop.mp3",
-        62,
-        "★★☆ 星空元氣",
-        "跨度大，注意手感。",
-        4,
-        9
-      );
-      add(
-        "soft_breeze",
-        "Soft Breeze",
-        100,
-        [0, 2, 4, 7, 9, 7, 4, 2],
-        "soft_breeze.mp3",
-        60,
-        "★☆☆ 治癒",
-        "旋律柔和，易判定。",
-        4,
-        9
-      );
-      add(
-        "spark_travel",
-        "Spark Travel",
-        124,
-        [0, 4, 7, 11, 12, 11, 7, 4],
-        "spark_travel.mp3",
-        64,
-        "★★★ 動感旅程",
-        "節奏快，刷分佳。",
-        4,
-        9
-      );
-      add(
-        "tiny_love_song",
-        "Tiny Love Song",
-        108,
-        [0, 2, 5, 7, 9, 7, 5, 2],
-        "tiny_love_song.mp3",
-        60,
-        "★☆☆ 短抒情",
-        "副歌短小，易連擊。",
-        4,
-        8
-      );
-      add(
-        "violet_night",
-        "Violet Night",
-        116,
-        [0, 3, 7, 10, 7, 3, 0],
-        "violet_night.mp3",
-        60,
-        "★★☆ 夜色",
-        "黑鍵穿插，練準度。",
-        4,
-        9
-      );
-      add(
-        "warm_smile",
-        "Warm Smile",
-        102,
-        [0, 2, 4, 5, 7, 5, 4, 2],
-        "warm_smile.mp3",
-        60,
-        "★☆☆ 暖系",
-        "規律節奏，新手友善。",
-        4,
-        8
-      );
-
+      addSegmented("swift_echo", "Swift Echo", 120, [0,4,7,9,7,4], [2,6,9,11,9,6], "", 60, "★★☆ 亮麗流行", "短副歌跳點，適合疊 Combo。", 4, 9);
+      addSegmented("city_lights_pop", "City Lights Pop", 110, [0,2,5,7,9,7,5,2], [2,4,7,9,11,9,7,4], "", 60, "★☆☆ 都會清新", "規律節奏，入門好打。", 4, 9);
+      addSegmented("dancefloor_shine", "Dancefloor Shine", 128, [0,4,7,11,12,11,7,4], [2,6,9,13,14,13,9,6], "", 62, "★★★ 派對電音", "高亮旋律，節奏密集。", 4, 9);
+      addSegmented("midnight_call", "Midnight Call", 100, [0,2,4,5,7,5,4,2], [2,4,6,7,9,7,6,4], "", 60, "★☆☆ 抒情流行", "平穩節奏，適合暖手。", 4, 8);
+      addSegmented("skyline_run", "Skyline Run", 130, [0,2,5,9,12,9,5,2], [2,4,7,11,14,11,7,4], "", 64, "★★★ 動感", "跨度大，練手指移動。", 4, 9);
+      addSegmented("neon_heart", "Neon Heartbeat", 118, [0,3,7,10,7,3,0], [2,5,9,12,9,5,2], "", 60, "★★☆ 復古感", "黑鍵穿插，注意定位。", 4, 8);
+      addSegmented("golden_hour_love", "Golden Hour Love", 105, [0,2,5,7,9,7,5,2], [2,4,7,9,11,9,7,4], "", 60, "★☆☆ 溫柔", "旋律流暢，適合放鬆。", 4, 9);
+      addSegmented("spark_pop", "Spark Pop", 132, [0,2,4,7,9,7,4,2], [2,4,6,9,11,9,6,4], "", 60, "★★☆ 元氣", "節奏明亮，Combo 練習。", 4, 9);
+      addSegmented("rainbow_steps", "Rainbow Steps", 112, [0,2,5,7,10,7,5,2], [2,4,7,9,12,9,7,4], "", 60, "★☆☆ 輕快", "跳點適中，新手友善。", 4, 9);
+      addSegmented("moonbeam_song", "Moonbeam Song", 96, [0,-1,3,5,7,8,7,5], [2,-1,5,7,9,10,9,7], "", 58, "★☆☆ 慢板", "長尾旋律，專注判定。", 4, 9);
+      addSegmented("firefly_pop", "Firefly Pop", 124, [0,2,5,9,12,9,5,2], [2,4,7,11,14,11,7,4], "", 62, "★★☆ 亮晶晶", "跨度大，注意手感。", 4, 9);
+      addSegmented("candy_rush", "Candy Rush", 126, [0,4,7,9,11,9,7,4], [2,6,9,11,13,11,9,6], "", 62, "★★★ 甜系電音", "節奏緊湊，適合刷分。", 4, 8);
+      addSegmented("street_story", "Street Story", 108, [0,1,3,5,8,5,3,1], [2,3,5,7,10,7,5,3], "", 60, "★☆☆ 都會抒情", "旋律線性，易上手。", 4, 9);
+      addSegmented("summer_flash", "Summer Flash", 122, [0,2,4,7,9,7,4,2], [2,4,6,9,11,9,6,4], "", 60, "★★☆ 夏日", "副歌密集，節奏感強。", 4, 9);
+      addSegmented("retro_wave_short", "Retro Wave Short", 128, [0,4,7,11,14,11,7,4], [2,6,9,13,16,13,9,6], "", 64, "★★★ 復古勁", "高音跨度大，練移動。", 4, 9);
+      addSegmented("coffee_chat_short", "Coffee Chat Short", 102, [0,2,4,5,7,5,4,2], [2,4,6,7,9,7,6,4], "", 60, "★☆☆ 輕鬆", "規律進行，放鬆玩。", 4, 8);
+      addSegmented("youth_light", "Youth Light", 118, [0,2,5,7,9,11,9,7], [2,4,7,9,11,13,11,9], "", 62, "★★☆ 青春", "節奏緊湊，適合刷分。", 4, 9);
+      addSegmented("echo_star", "Echo Star", 114, [0,3,5,7,10,7,5,3], [2,5,7,9,12,9,7,5], "", 60, "★★☆ 星空", "黑鍵點綴，旋律悠長。", 4, 9);
+      addSegmented("after_class", "After Class", 106, [0,2,4,5,7,5,4,2], [2,4,6,7,9,7,6,4], "", 60, "★☆☆ 校園", "易上手，適合新手。", 4, 8);
+      addSegmented("festival_jump", "Festival Jump", 132, [0,2,5,9,12,9,5,2], [2,4,7,11,14,11,7,4], "", 64, "★★★ 節慶", "跳點大，練習左右移。", 4, 9);
+      addSegmented("letter_home", "Letter Home", 98, [0,2,4,7,9,11,9,7], [2,4,6,9,11,13,11,9], "", 60, "★☆☆ 溫暖", "旋律堆疊，節奏穩。", 4, 9);
+      addSegmented("lost_in_city", "Lost in City", 120, [0,4,7,9,11,9,7,4], [2,6,9,11,13,11,9,6], "", 62, "★★☆ 都會", "副歌密集，刷高分。", 4, 9);
+      addSegmented("quiet_rain", "Quiet Rain", 92, [0,-1,2,-1,5,-1,7,-1], [2,-1,4,-1,7,-1,9,-1], "", 55, "★☆☆ 靜謐", "低壓力，專注音色。", 4, 9);
+      addSegmented("firefly_lane_short", "Firefly Lane Short", 116, [0,2,5,7,10,7,5,2], [2,4,7,9,12,9,7,4], "", 60, "★☆☆ 童話", "跳躍適中，日常練習。", 4, 9);
+      addSegmented("silver_flash", "Silver Flash", 134, [0,3,7,10,14,10,7,3], [2,5,9,12,16,12,9,5], "", 64, "★★★ 電音", "高音延伸，考驗反應。", 4, 9);
+      addSegmented("homebound", "Homebound", 104, [0,2,4,5,7,5,4,2], [2,4,6,7,9,7,6,4], "", 60, "★☆☆ 溫馨", "熟悉進行，放鬆刷任務。", 4, 8);
+      addSegmented("stargaze_pop", "Stargaze Pop", 126, [0,2,5,9,11,9,5,2], [2,4,7,11,13,11,7,4], "", 62, "★★☆ 星空元氣", "跨度大，注意手感。", 4, 9);
+      addSegmented("soft_breeze", "Soft Breeze", 100, [0,2,4,7,9,7,4,2], [2,4,6,9,11,9,6,4], "", 60, "★☆☆ 治癒", "旋律柔和，易判定。", 4, 9);
+      addSegmented("spark_travel", "Spark Travel", 124, [0,4,7,11,12,11,7,4], [2,6,9,13,14,13,9,6], "", 64, "★★★ 動感旅程", "節奏快，刷分佳。", 4, 9);
+      addSegmented("tiny_love_song", "Tiny Love Song", 108, [0,2,5,7,9,7,5,2], [2,4,7,9,11,9,7,4], "", 60, "★☆☆ 短抒情", "副歌短小，易連擊。", 4, 8);
+      addSegmented("violet_night", "Violet Night", 116, [0,3,7,10,7,3,0], [2,5,9,12,9,5,2], "", 60, "★★☆ 夜色", "黑鍵穿插，練準度。", 4, 9);
+      addSegmented("warm_smile", "Warm Smile", 102, [0,2,4,5,7,5,4,2], [2,4,6,7,9,7,6,4], "", 60, "★☆☆ 暖系", "規律節奏，新手友善。", 4, 8);
       return songs;
     })();
 
@@ -4951,6 +4786,7 @@
         counts: { perfect: 0, great: 0, good: 0, miss: 0 },
         drawn: new Set(),
         seq: mappedSeq,
+        tutorialKeys: new Set(),
       };
       autoSamples = [];
       freeStartTime = null;
@@ -4975,6 +4811,7 @@
 
       if (isFree) playEl.classList.add("free-mode");
       else playEl.classList.remove("free-mode");
+      if (!isFree) maybeShowSongKeysOnboard();
 
       if (song?.bgmFile) {
         bgm.src = `assets/bgm/${song.bgmFile}`;
@@ -5212,6 +5049,17 @@
       if (freeLastHit - freeStartTime >= 90000) completeQuest("Q34_free90");
     }
 
+    function trackSongKeyTutorial(lane) {
+      if (!game || game.mode !== "songs") return;
+      if (currentLayout.lanes !== 8) return;
+      if (lane < 0 || lane >= currentLayout.lanes) return;
+      if (!game.tutorialKeys) game.tutorialKeys = new Set();
+      game.tutorialKeys.add(lane);
+      if (game.tutorialKeys.size >= currentLayout.lanes) {
+        completeQuest("Q0_song_keys");
+      }
+    }
+
     function evalHitAt(idx, t) {
       if (idx < 0 || idx >= game.seq.length) return null;
       if (game.judged[idx]) return null;
@@ -5349,6 +5197,8 @@
       if (Number.isNaN(laneInputNum)) return;
 
       const mappedLane = mapLaneForLayout(laneInputNum);
+
+      trackSongKeyTutorial(mappedLane);
 
       const best = findHitCandidate(t, mappedLane, idxHint);
       // 空鍵 / 超出判定範圍：忽略，不記 Miss，避免後續自動 Miss 重複累計
@@ -5737,9 +5587,11 @@
       if (isModalOpen()) return;
       const k = e.key.toLowerCase();
       if (k in keyMap) {
+        const lane = keyMap[k];
+        if (currentMode() === "songs" && lane >= currentLayout.lanes) return;
         ensureAudio();
         e.preventDefault();
-        judge(keyMap[k]);
+        judge(lane);
       }
     });
 

@@ -7,7 +7,7 @@
       content="width=device-width, initial-scale=1, viewport-fit=cover"
     />
     <title>
-      鋼琴小遊戲 · Mew Atelier（真實鋼琴黑白層次 · 12 鍵 · 30 首 30s BGM）
+      鋼琴小遊戲 · Mew Atelier（真實鋼琴黑白層次 · 12 鍵）
     </title>
     <link
       href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;800;900&display=swap"
@@ -2461,7 +2461,7 @@
           真實鋼琴 12 鍵 · 掉落方塊節奏 · 任務成就 · 本機排行榜
         </div>
         <ul class="start-list">
-          <li>使用 A S D F J K L / W E T Y U 操作真實黑白鍵配置。</li>
+          <li>自由彈奏：A S D F J K L / W E T Y U 操作真實黑白鍵配置；歌曲模式 8 鍵：A W S E D F T J。</li>
           <li>完成章節任務，解鎖「新手 · 穩定 · 高手」進度。</li>
           <li>挑戰高分進排行榜，展示你的貓掌手速。</li>
         </ul>
@@ -2484,9 +2484,7 @@
           鋼琴小遊戲 · Mew Atelier
         </div>
         <div class="nav-right">
-          <div class="muted mini">
-            鍵盤：A S D F J K L（白鍵） · W E T Y U（黑鍵） · 可點欄位/方塊/琴鍵
-          </div>
+          <div class="muted mini">鍵盤（自由彈奏）：A S D F J K L（白鍵） · W E T Y U（黑鍵） · 歌曲模式 8 鍵：A W S E D F T J · 可點欄位/方塊/琴鍵</div>
           <button id="btnRank" class="secondary small badge-btn">
             <span class="badge-dot"></span>🏆 排行榜
           </button>
@@ -2643,6 +2641,18 @@
             <div id="judge" class="judge">PERFECT</div>
             <div id="comboLabel" class="combo-label"></div>
             <div id="countdown" class="countdown"></div>
+          <div class="song-keys-hint" id="songKeysHint">歌曲模式 8 鍵：A W S E D F T J</div>
+          <div class="song-keys-onboard" id="songKeysOnboard" aria-hidden="true">
+            <span class="label">歌曲模式 8 鍵</span>
+            <span class="keycap" style="--delay: 0s">A</span>
+            <span class="keycap" style="--delay: 0.06s">W</span>
+            <span class="keycap" style="--delay: 0.12s">S</span>
+            <span class="keycap" style="--delay: 0.18s">E</span>
+            <span class="keycap" style="--delay: 0.24s">D</span>
+            <span class="keycap" style="--delay: 0.3s">F</span>
+            <span class="keycap" style="--delay: 0.36s">T</span>
+            <span class="keycap" style="--delay: 0.42s">J</span>
+          </div>
             <div class="free-hint">
               這裡沒有方塊，只有你跟琴鍵的時間。隨意彈、隨意創作吧 🐾
             </div>
@@ -2692,7 +2702,7 @@
             <div class="cat-sticker">
               <div class="cat-emoji">🐾</div>
               <strong>鍵位小抄</strong>
-              <div>A S D F / J K L 是白鍵，W E T Y U 是黑鍵。</div>
+              <div>自由彈奏：A S D F / J K L 是白鍵，W E T Y U 是黑鍵；歌曲模式 8 鍵：A W S E D F T J。</div>
             </div>
             <div class="cat-sticker">
               <div class="cat-emoji">🎧</div>
@@ -3124,6 +3134,13 @@
       }
 
       const QUEST_DEFS = [
+      {
+        id: "Q0_song_keys",
+        title: "????????",
+        desc: "?????? 8 ??A W S E D F T J??",
+        tag: "??",
+        chapter: "ch1",
+      },
         {
           id: "Q1_first_clear",
           title: "第一次的喵之音",
@@ -3412,6 +3429,15 @@
         }, 150);
       }
       toastCloseEl.addEventListener("click", hideToastAndNext);
+    function maybeShowSongKeysOnboard() {
+      if (currentMode() !== "songs") return;
+      if (storage.get(SONG_KEYS_ONBOARD_KEY) === "1") return;
+      storage.set(SONG_KEYS_ONBOARD_KEY, "1");
+      playEl.classList.add("show-song-keys-onboard");
+      enqueueToast("歌曲模式 8 鍵：A W S E D F T J");
+      setTimeout(() => playEl.classList.remove("show-song-keys-onboard"), 2400);
+    }
+
 
       function todayStr() {
         return new Date().toISOString().slice(0, 10);
@@ -4359,7 +4385,41 @@
           "專屬 Mew Atelier 主題曲，用來展示整體作品。",
           8
         );
-
+        /* 新增 25 首原創五風格曲（每風格 5 首） */
+        // 抒情
+        addSegmented("ballad_halo", "Ballad Halo (30s)", 92, [0, 2, 4, 5, 4, 2, 0, 2], [0, 3, 5, 7, 5, 3, 2, 0], "", 60, "★☆☆ 抒情", "慢板旋律，適合暖手。", 8);
+        addSegmented("moonlit_letter", "Moonlit Letter (30s)", 88, [0, 2, 5, 4, 2, 0, 2, 4], [0, 3, 5, 7, 6, 5, 3, 2], "", 60, "★☆☆ 溫柔", "旋律測試準確度。", 8);
+        addSegmented("gentle_promise", "Gentle Promise (30s)", 96, [0, 1, 3, 5, 4, 3, 1, 0], [0, 2, 4, 6, 7, 6, 4, 2], "", 60, "★☆☆ 柔和", "節奏平穩，好接手。", 8);
+        addSegmented("slow_fall", "Slow Fall (30s)", 84, [0, -1, 2, 4, 2, -1, 0, -1], [0, 2, 4, 5, 4, 2, 0, -1], "", 58, "★☆☆ 緩緩", "安靜開始，適合熱身。", 6);
+        addSegmented("quiet_confession", "Quiet Confession (30s)", 98, [0, 2, 4, 7, 4, 2, 0, 2], [0, 3, 5, 7, 5, 3, 2, 0], "", 60, "★☆☆ 清淡", "流暢一段，容易得分。", 8);
+        
+        // 輕快流行
+        addSegmented("sunny_sketch", "Sunny Sketch (30s)", 118, [0, 2, 4, 5, 7, 5, 4, 2], [0, 2, 5, 7, 6, 5, 2, 0], "", 60, "★★☆ 輕快", "節奏清楚，中速練習。", 8);
+        addSegmented("bubble_drive", "Bubble Drive (30s)", 122, [0, 2, 5, 7, 5, 2, 0, 2], [0, 4, 7, 6, 4, 2, 0, 2], "", 62, "★★☆ 元氣", "跳點適中，好練手感。", 8);
+        addSegmented("peachy_day", "Peachy Day (30s)", 110, [0, 1, 3, 5, 7, 5, 3, 1], [0, 2, 4, 7, 6, 4, 2, 0], "", 60, "★☆☆ 清新", "新手友善，節奏平穩。", 8);
+        addSegmented("weekend_skip", "Weekend Skip (30s)", 124, [0, 2, 4, 5, 7, 5, 2, 0], [0, 2, 4, 7, 6, 4, 2, 0], "", 62, "★★☆ 節奏鮮明", "緊湊感明顯，適合刷分。", 8);
+        addSegmented("morning_shine", "Morning Shine (30s)", 116, [0, 2, 5, 7, 5, 2, 0, 2], [0, 2, 4, 6, 7, 6, 4, 2], "", 60, "★★☆ 週期感", "中速彈奏，練節奏。", 8);
+        
+        // 電子舞曲
+        addSegmented("neon_rush", "Neon Rush (30s)", 128, [0, 4, 7, 4, 0, 4, 7, 4], [0, 5, 7, 5, 0, 5, 7, 5], "", 60, "★★★ 電子", "節奏強、中高速。", 6);
+        addSegmented("pulse_circuit", "Pulse Circuit (30s)", 132, [0, 3, 7, 3, 0, 3, 7, 3], [0, 4, 7, 4, 0, 4, 7, 4], "", 60, "★★★ 電子", "黑鍵索引多，測試定位。", 6);
+        addSegmented("electric_glow", "Electric Glow (30s)", 135, [0, 2, 5, 2, 0, 2, 5, 2], [0, 4, 7, 4, 0, 4, 7, 4], "", 60, "★★★ 活力", "高 BPM，適合手速。", 6);
+        addSegmented("night_runner", "Night Runner (30s)", 140, [0, 5, 7, 5, 0, 5, 7, 5], [0, 4, 7, 4, 0, 4, 7, 4], "", 60, "★★★ 高速", "練反應速度。", 6);
+        addSegmented("strobe_kiss", "Strobe Kiss (30s)", 126, [0, 2, 5, 2, 0, 2, 5, 2], [0, 3, 6, 3, 0, 3, 6, 3], "", 62, "★★★ 節拍", "抓節奏，連擊好打。", 6);
+        
+        // 獨立搖滾
+        addSegmented("garage_spark", "Garage Spark (30s)", 120, [0, 2, 4, 5, 4, 2, 0, 2], [0, 2, 5, 7, 5, 2, 0, 2], "", 62, "★★☆ 搖滾", "染色感一段，動感易上手。", 8);
+        addSegmented("indie_horizon", "Indie Horizon (30s)", 128, [0, 3, 5, 7, 5, 3, 0, 3], [0, 2, 4, 6, 7, 6, 4, 2], "", 62, "★★☆ 正向", "黑鍵納入，練對齊。", 8);
+        addSegmented("raw_sunrise", "Raw Sunrise (30s)", 132, [0, 2, 4, 7, 4, 2, 0, 2], [0, 2, 5, 7, 6, 5, 2, 0], "", 62, "★★☆ 熱血", "流暢推進，道具挑戰。", 8);
+        addSegmented("denim_echo", "Denim Echo (30s)", 116, [0, 1, 3, 5, 6, 5, 3, 1], [0, 2, 5, 7, 5, 2, 0, 2], "", 62, "★★☆ 節奏", "按鍵規律，穩定手感。", 8);
+        addSegmented("skyline_guitar", "Skyline Guitar (30s)", 124, [0, 2, 5, 7, 5, 2, 0, 2], [0, 3, 5, 7, 6, 5, 3, 2], "", 62, "★★☆ 元氣", "同時練節奏與手感。", 8);
+        
+        // Lo-fi Chill
+        addSegmented("lofi_window", "Lo-fi Window (30s)", 80, [0, -1, 2, -1, 4, -1, 2, -1], [0, 2, -1, 4, 2, -1, 0, -1], "", 56, "★☆☆ Lo-fi", "慵懶拍子，容錯高。", 4);
+        addSegmented("midnight_milk", "Midnight Milk (30s)", 78, [0, -1, 3, -1, 5, -1, 3, -1], [0, 2, -1, 5, 3, -1, 0, -1], "", 56, "★☆☆ Lo-fi", "慢慢測試節奏感。", 4);
+        addSegmented("paper_cloud", "Paper Cloud (30s)", 86, [0, 2, -1, 5, -1, 7, -1, 5], [0, -1, 4, -1, 7, -1, 4, -1], "", 56, "★☆☆ Lo-fi", "恬靜卡點，適合放鬆。", 4);
+        addSegmented("slow_station", "Slow Station (30s)", 90, [0, 2, 4, -1, 7, -1, 4, 2], [0, -1, 3, -1, 5, -1, 3, -1], "", 56, "★☆☆ Lo-fi", "半節奏之感，容易掌握。", 4);
+        addSegmented("rainroom", "Rainroom (30s)", 72, [0, -1, 2, -1, 5, -1, 2, -1], [0, -1, 4, -1, 7, -1, 4, -1], "", 55, "★☆☆ Lo-fi", "節奏輕鬆，學者先練。", 4);
         return songs;
       })();
 
@@ -4647,6 +4707,7 @@
           counts: { perfect: 0, great: 0, good: 0, miss: 0 },
           drawn: new Set(),
           seq: mappedSeq,
+        tutorialKeys: new Set(),
         };
         autoOffset = 0;
         autoSamples = [];
@@ -4882,6 +4943,16 @@
           completeQuest("Q20_creative45");
         if (freeLastHit - freeStartTime >= 90000) completeQuest("Q34_free90");
       }
+      function trackSongKeyTutorial(lane) {
+      if (!game || game.mode !== "songs") return;
+      if (currentLayout.lanes !== 8) return;
+      if (lane < 0 || lane >= currentLayout.lanes) return;
+      if (!game.tutorialKeys) game.tutorialKeys = new Set();
+      game.tutorialKeys.add(lane);
+      if (game.tutorialKeys.size >= currentLayout.lanes) {
+        completeQuest("Q0_song_keys");
+      }
+    }
 
       function evalHitAt(idx, t) {
         if (idx < 0 || idx >= game.seq.length) return null;
@@ -4895,7 +4966,7 @@
         return { idx, lane, dt, ad };
       }
 
-      function findHitCandidate(t, laneInputNum, idxHint) {
+      function findHitCandidate(t, mappedLane, idxHint) {
         if (idxHint !== null && idxHint !== undefined) {
           return evalHitAt(Number(idxHint), t);
         }
@@ -5014,6 +5085,10 @@
         const t = now() - game.t0 - autoOffset;
         const laneInputNum = Number(laneInput);
         if (Number.isNaN(laneInputNum)) return;
+
+        const mappedLane = mapLaneForLayout(laneInputNum);
+
+        trackSongKeyTutorial(mappedLane);
 
         const best = findHitCandidate(t, laneInputNum, idxHint);
         // 空鍵 / 超出判定範圍：忽略，不記 Miss，避免後續自動 Miss 重複累計
@@ -5391,10 +5466,68 @@
         if (isModalOpen()) return;
         const k = e.key.toLowerCase();
         if (k in keyMap) {
+          const lane = keyMap[k];
+          if (currentMode() === "songs" && lane >= currentLayout.lanes) return;
           ensureAudio();
           e.preventDefault();
-          judge(keyMap[k]);
+          judge(lane);
         }
+
+        function buildSectionSeq(verse, chorus, beats) {
+          const plan = [
+            { kind: "verse", w: 2 },
+            { kind: "verse", w: 2 },
+            { kind: "chorus", w: 3 },
+            { kind: "verse", w: 2 },
+            { kind: "chorus", w: 3 },
+          ];
+          const total = plan.reduce((s, p) => s + p.w, 0);
+          let remain = beats;
+          const seq = [];
+          plan.forEach((p, idx) => {
+            const take = idx === plan.length - 1 ? remain : Math.max(1, Math.round((beats * p.w) / total));
+            remain -= take;
+            const motif = p.kind === "verse" ? verse : chorus;
+            for (let i = 0; i < take; i++) seq.push(motif[i % motif.length]);
+          });
+          return seq.slice(0, beats);
+        }
+        
+        function addSegmented(
+          id,
+          name,
+          bpm,
+          verse,
+          chorus,
+          file,
+          base,
+          diff,
+          tip,
+          every,
+          lengthSec = 30
+        ) {
+          const beats = Math.max(
+            verse.length,
+            chorus.length,
+            Math.round((bpm * lengthSec) / 60)
+          );
+          const seq = buildSectionSeq(verse, chorus, beats);
+          const s = makeSong(
+            id,
+            name,
+            bpm,
+            beats,
+            verse,
+            file,
+            base,
+            diff,
+            tip,
+            lengthSec
+          );
+          s.seq = withRests(seq, every);
+          songs.push(s);
+        }
+        
       });
 
       $("#btnMissions").addEventListener("click", () => {
